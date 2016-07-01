@@ -238,7 +238,7 @@ def split_libraries_fastq(qclient, job_id, parameters, out_dir):
 
     Returns
     -------
-    dict
+    bool, list, str
         The results of the job
     """
     # Step 1 get the rest of the information need to run split libraries

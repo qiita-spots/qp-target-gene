@@ -143,7 +143,7 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
 
     Returns
     -------
-    dict
+    bool, list, str
         The results of the job
 
     Raises

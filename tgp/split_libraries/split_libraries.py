@@ -167,7 +167,7 @@ def split_libraries(qclient, job_id, parameters, out_dir):
 
     Returns
     -------
-    dict
+    bool, list, str
         The results of the job
 
     Raises
