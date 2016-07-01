@@ -12,7 +12,7 @@ from os import getcwd
 import httpretty
 from qiita_client import QiitaClient
 
-from tgp.util import system_call
+from qp_target_gene.util import system_call
 
 
 class UtilTests(TestCase):

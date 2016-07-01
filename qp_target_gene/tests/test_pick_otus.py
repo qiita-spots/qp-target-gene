@@ -12,9 +12,9 @@ from os import remove, close, mkdir
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
 
-from tgp.pick_otus import (write_parameters_file, generate_artifact_info,
-                           generate_pick_closed_reference_otus_cmd,
-                           generate_sortmerna_tgz)
+from qp_target_gene.pick_otus import (
+    write_parameters_file, generate_artifact_info,
+    generate_pick_closed_reference_otus_cmd, generate_sortmerna_tgz)
 
 
 class PickOTUsTests(TestCase):

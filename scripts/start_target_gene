@@ -10,7 +10,7 @@
 
 import click
 
-from tgp.plugin import execute_job
+from qp_target_gene.plugin import execute_job
 
 
 @click.command()

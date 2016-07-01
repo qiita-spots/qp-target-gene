@@ -30,7 +30,7 @@ with open('README.rst') as f:
 
 classifiers = [s.strip() for s in classes.split('\n') if s]
 
-setup(name='qiita-plugin-target-gene',
+setup(name='qp-target-gene',
       version=__version__,
       long_description=long_description,
       license="BSD",
@@ -39,8 +39,8 @@ setup(name='qiita-plugin-target-gene',
       author_email="qiita.help@gmail.com",
       url='https://github.com/biocore/qiita',
       test_suite='nose.collector',
-      packages=['tgp', 'tgp/split_libraries'],
-      package_data={'tgp': ['support_files/config_file.cfg']},
+      packages=['qp_target_gene', 'qp_target_gene/split_libraries'],
+      package_data={'qp_target_gene': ['support_files/config_file.cfg']},
       scripts=glob('scripts/*'),
       extras_require={'test': ["nose >= 0.10.1", "pep8", 'httpretty']},
       install_requires=['click >= 3.3', 'future', 'requests', 'pandas >= 0.15',

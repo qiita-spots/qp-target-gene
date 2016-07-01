@@ -14,8 +14,9 @@ from future import standard_library
 
 from qiita_client import QiitaClient
 
-from tgp.split_libraries import split_libraries, split_libraries_fastq
-from tgp.pick_otus import pick_closed_reference_otus
+from qp_target_gene.split_libraries import (split_libraries,
+                                            split_libraries_fastq)
+from qp_target_gene.pick_otus import pick_closed_reference_otus
 
 with standard_library.hooks():
     from configparser import ConfigParser
