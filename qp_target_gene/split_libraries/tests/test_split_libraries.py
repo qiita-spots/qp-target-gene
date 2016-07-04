@@ -12,7 +12,7 @@ from os import remove
 from shutil import rmtree
 from tempfile import mkdtemp
 
-from tgp.split_libraries.split_libraries import (
+from qp_target_gene.split_libraries.split_libraries import (
     generate_parameters_string, generate_process_sff_commands,
     generate_split_libraries_cmd)
 

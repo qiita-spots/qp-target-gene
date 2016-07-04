@@ -12,7 +12,7 @@ from os import remove, close
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
 
-from tgp.split_libraries.split_libraries_fastq import (
+from qp_target_gene.split_libraries.split_libraries_fastq import (
     generate_parameters_string, get_sample_names_by_run_prefix,
     generate_per_sample_fastq_command, generate_split_libraries_fastq_cmd)
 

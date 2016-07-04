@@ -17,7 +17,7 @@ from tempfile import mkdtemp, mkstemp
 import httpretty
 from qiita_client import QiitaClient
 
-from tgp.split_libraries.util import (
+from qp_target_gene.split_libraries.util import (
     get_artifact_information, split_mapping_file, generate_demux_file,
     generate_artifact_info)
 
