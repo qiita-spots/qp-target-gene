@@ -12,6 +12,7 @@ from os import makedirs, stat
 
 import pandas as pd
 from h5py import File
+from qiita_client import ArtifactInfo
 # Currently the EBI submission is not part of the target gene plugin
 # and the demux file is not its own project, so we need to import from
 # qiita_ware. Plans are to the EBI submission to the target gene plugin
@@ -30,30 +31,22 @@ def get_artifact_information(qclient, artifact_id):
 
     Returns
     -------
-    list of (str, str), str, str
-        The artifact filepaths and their type
-        The artifact mapping file
+    dict, str, str
+        The artifact filepaths keyed by type
+        The artifact Qiime-compliant mapping file path
         The artifact type
-
-    Raises
-    ------
-    ValueError
-        If there is any problem gathering the information from the server
     """
     # Get the artifact filepath information
-    fps_info = qclient.get("/qiita_db/artifacts/%s/filepaths/" % artifact_id)
-    fps = fps_info['filepaths']
-
-    # Get the artifact metadata
-    metadata_info = qclient.get(
-        "/qiita_db/artifacts/%s/mapping/" % artifact_id)
-    mapping_file = metadata_info['mapping']
-
+    artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    fps = artifact_info['files']
     # Get the artifact type
-    type_info = qclient.get("/qiita_db/artifacts/%s/type/" % artifact_id)
-    artifact_type = type_info['type']
+    artifact_type = artifact_info['type']
+    # Get the artifact metadata
+    prep_info = qclient.get('/qiita_db/prep_template/%s/'
+                            % artifact_info['prep_information'][0])
+    qiime_map = prep_info['qiime-map']
 
-    return fps, mapping_file, artifact_type
+    return fps, qiime_map, artifact_type
 
 
 def split_mapping_file(mapping_file, out_dir):
@@ -144,4 +137,4 @@ def generate_artifact_info(sl_out):
                  (path_builder('seqs.fastq'), 'preprocessed_fastq'),
                  (path_builder('seqs.demux'), 'preprocessed_demux'),
                  (path_builder('split_library_log.txt'), 'log')]
-    return [['demultiplexed', 'Demultiplexed', filepaths]]
+    return [ArtifactInfo('demultiplexed', 'Demultiplexed', filepaths)]
