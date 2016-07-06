@@ -7,17 +7,37 @@
 # -----------------------------------------------------------------------------
 
 from unittest import TestCase, main
-from os.path import isdir, exists, join
-from os import remove, close, mkdir
-from shutil import rmtree
+from os.path import isdir, exists, join, dirname
+from os import remove, close, mkdir, environ
+from shutil import rmtree, copyfile
 from tempfile import mkstemp, mkdtemp
+from json import dumps
+from functools import partial
+from glob import glob
+
+from qiita_client import QiitaClient, ArtifactInfo
 
 from qp_target_gene.pick_otus import (
     write_parameters_file, generate_artifact_info,
-    generate_pick_closed_reference_otus_cmd, generate_sortmerna_tgz)
+    generate_pick_closed_reference_otus_cmd, generate_sortmerna_tgz,
+    pick_closed_reference_otus)
+
+CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
+CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
+                 'AmmCWZuabe0O5Mp28s1')
 
 
 class PickOTUsTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        server_cert = environ.get('QIITA_SERVER_CERT', None)
+        cls.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
+                                  CLIENT_SECRET, server_cert=server_cert)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.qclient.post('/apitest/reset/')
+
     def setUp(self):
         self._clean_up_files = []
 
@@ -49,15 +69,15 @@ class PickOTUsTests(TestCase):
     def test_generate_pick_closed_reference_otus_cmd(self):
         output_dir = mkdtemp()
         self._clean_up_files.append(output_dir)
-        filepaths = [('/directory/seqs.fna', 'preprocessed_fasta'),
-                     ('/directory/seqs.demux', 'preprocessed_demux')]
+        filepaths = {'preprocessed_fasta': ['/directory/seqs.fna'],
+                     'preprocessed_demux': ['/directory/seqs.demux']}
         parameters = {
             "reference": 1, "sortmerna_e_value": 1, "sortmerna_max_pos": 10000,
             "similarity": 0.97, "sortmerna_coverage": 0.97, "threads": 1,
             "input_data": 1}
-        reference_fps = [('/directory/refseqs.fna', 'reference_seqs'),
-                         ('/directory/reftax.txt', 'reference_tax'),
-                         ('/directory/reftree.tre', 'reference_tree')]
+        reference_fps = {'reference_seqs': '/directory/refseqs.fna',
+                         'reference_tax': '/directory/reftax.txt',
+                         'reference_tree': '/directory/reftree.tre'}
 
         obs, obs_dir = generate_pick_closed_reference_otus_cmd(
             filepaths, output_dir, parameters, reference_fps)
@@ -73,22 +93,6 @@ class PickOTUsTests(TestCase):
         mkdir(join(outdir, 'sortmerna_picked_otus'))
         self.assertIsNone(generate_sortmerna_tgz(outdir))
 
-    def test_generate_pick_closed_reference_otus_cmd_valueerror(self):
-        filepaths = [('/directory/seqs.log', 'log'),
-                     ('/directory/seqs.demux', 'preprocessed_demux')]
-        parameters = {
-            "reference": 1, "sortmerna_e_value": 1, "sortmerna_max_pos": 10000,
-            "similarity": 0.97, "sortmerna_coverage": 0.97, "threads": 1,
-            "input_data": 1}
-        reference_fps = [('/directory/refseqs.fna', 'reference_seqs'),
-                         ('/directory/reftax.txt', 'reference_tax'),
-                         ('/directory/reftree.tre', 'reference_tree')]
-        output_dir = "/directory/out"
-
-        with self.assertRaises(ValueError):
-            generate_pick_closed_reference_otus_cmd(
-                filepaths, output_dir, parameters, reference_fps)
-
     def test_generate_artifact_info(self):
         outdir = mkdtemp()
         self._clean_up_files.append(outdir)
@@ -102,14 +106,90 @@ class PickOTUsTests(TestCase):
                (join(outdir, "sortmerna_picked_otus"), "directory"),
                (join(outdir, "sortmerna_picked_otus.tgz"), "tgz"),
                (log_fp, "log")]
-        exp = [['OTU table', 'BIOM', fps]]
+        exp = [ArtifactInfo('OTU table', 'BIOM', fps)]
         self.assertEqual(obs, exp)
+
+    def test_pick_closed_reference_otus(self):
+        # Create a new job
+        parameters = {"reference": 1,
+                      "sortmerna_e_value": 1,
+                      "sortmerna_max_pos": 10000,
+                      "similarity": 0.97,
+                      "sortmerna_coverage": 0.97,
+                      "threads": 1,
+                      "input_data": 2}
+        data = {'user': 'demo@microbio.me',
+                'command': 3,
+                'status': 'running',
+                'parameters': dumps(parameters)}
+        job_id = self.qclient.post(
+            '/apitest/processing_job/', data=data)['job']
+
+        # These filepaths do not exist in Qiita - create them
+        fps = self.qclient.get('/qiita_db/artifacts/2/')['files']
+        fasta_fp = fps['preprocessed_fasta'][0]
+        with open(fasta_fp, 'w') as f:
+            f.write(READS)
+        self._clean_up_files.append(fasta_fp)
+
+        ref_fps = self.qclient.get("/qiita_db/references/1/")['files']
+        path_builder = partial(join, dirname(__file__), 'test_data')
+        copyfile(path_builder('refseqs.fna'), ref_fps['reference_seqs'])
+        copyfile(path_builder('reftax.txt'), ref_fps['reference_tax'])
+
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        obs_success, obs_ainfo, obs_msg = pick_closed_reference_otus(
+            self.qclient, job_id, parameters, out_dir)
+        self.assertTrue(obs_success)
+        path_builder = partial(join, out_dir, 'cr_otus')
+        log_fp = glob(path_builder("log_*.txt"))[0]
+        fps = [(path_builder("otu_table.biom"), "biom"),
+               (path_builder("sortmerna_picked_otus"), "directory"),
+               (path_builder("sortmerna_picked_otus.tgz"), "tgz"),
+               (log_fp, "log")]
+        exp_ainfo = [ArtifactInfo('OTU table', 'BIOM', fps)]
+        self.assertEqual(obs_ainfo, exp_ainfo)
+        self.assertEqual(obs_msg, "")
 
 EXP_PARAMS = """pick_otus:otu_picking_method\tsortmerna
 pick_otus:sortmerna_max_pos\t10000
 pick_otus:similarity\t0.97
 pick_otus:sortmerna_coverage\t0.97
 pick_otus:threads\t1
+"""
+
+READS = """>1001.SKB1_0 orig_bc=TAACTTGCGGAC new_bc=TAACTTGCGGAC bc_diffs=0
+TACGTAGGTGGCAAGCGTTGTCCGGAATTATTGGGCGTAAAGCGCGCGCAGGCGGTCCTTTAAGTCTGATGTGAAAGC\
+CCACGGCTTAACCGTGGAGGGTCATTGGAAACTGGAGGACTTGAGTACAGAAGAGGAGAGAGGAATTCCACGT
+>1001.SKB1_1 orig_bc=TAACTTGCGGAC new_bc=TAACTTGCGGAC bc_diffs=0
+TACGTAGGTGGCAAGCGTTGTCCGGATTTATTGGGTTTAAAGGGTGCGTAGGCGGTTGTATAAGTCAGTGCTGAAATA\
+TCCCGGCTTAACCGGGAGGGTGGCATTGATACTGCGGGGCTTGAGAACGGGTGAGGTAGGCGGAATTGACGGT
+>1001.SKB1_2 orig_bc=TAACTTGCGGAC new_bc=TAACTTGCGGAC bc_diffs=0
+TACGTAGGGGGCAAGCGTTGTCCGGAATTATTGGGCGTAAAGCGCGCGCAGGCGGTTCTTTAAGTCTGGTGTTTAAAC\
+CCGAGGCTCAACTTCGGGTCGCACTGGAAACTGGTGAACTTGCGGGCAGATGAGGAAAGCGGAATTCCACGTG
+>1001.SKB1_3 orig_bc=TAACTAGCGGAC new_bc=TAACTTGCGGAC bc_diffs=1
+TACGAAGGGTGCAAGCGTTACTCGGAATTACTGGGCGTAAAGCGTGCGTAGGCGGTTTGTTAAGTCTGATGTGAAAGC\
+CCTGGGCTCAACCTGAGAATGGCATTGGATACTGTCAGTCTAGAGTGCGGTATAGGCAAGCGGAATTCCTGGT
+>1001.SKB1_4 orig_bc=TAACTTGCGAAC new_bc=TAACTTGCGGAC bc_diffs=1
+GACGTAGGGGCCGAGCGTTGTCCGGAGTTACTGGGCGTAAAGCGCGCGCAGGCGGATCAGCGCATCGTCGGTGAAAGC\
+CCCCCGCTCAACGGGGGAGGGTCCGGCGAGACGGCTGGGCTGGAGGCAGGCAGAGGCGAGTGGTATTCCAGGT
+>1001.SKB1_5 orig_bc=TAACTTGCGGAC new_bc=TAACTTGCGGAC bc_diffs=0
+TACGTAGGTGGCAAGCGTTGTCCGGATTTATTGGGTTTAAAGGGTGCGTAGGCGGTCCTTTAAGTCAGTGCTGAAATA\
+CTCCAGCTTAACTGGAGGGGTGGCATTGATACTGGGGGACTTGAATGAAGTCGAGGTAGGCGGACTTGACGGG
+>1001.SKB1_6 orig_bc=TAACTTGCGGAC new_bc=TAACTTGCGGAC bc_diffs=0
+TACGGAGGGTGCGAGCGTTAATCGGAATTACTGGGCGTAAAGCGCGCGTAGGCGGTTATCTAAGCTAGATGTGAAATC\
+CCCGGGCTTAACCTGGGAATTGCATTTAGACCTGGATGGCTAGAGTATGGGAGAGGAGTGTGGCATTTCAGGT
+>1001.SKB1_7 orig_bc=TAACTTGCGGAC new_bc=TAACTTGCGGAC bc_diffs=0
+TACAGAGGGTGCAAGCGTTAATCGGAATTACTGGGCTTAAAGCGTGCGTAGTCGGTTATTCAAGTCGGGGGTGAAAGC\
+CCCGGGCTCAACCTGGGAATTGCATTCGATACTGTTTAGCTAGAGTTCGGCAGAGGGAAGTGGAATTTCCGGT
+>1001.SKB1_8 orig_bc=TAACTTGCGGAC new_bc=TAACTTGCGGAC bc_diffs=0
+TACGTAGGGTGCAAGCGTTAATCGGAATTACTGGGCGTAAAGCGTGCGCAGGCGGTTTTGTAAGACCGATGTGAAATC\
+CCCGGGCTTAACCTGGGAACTGCATTGGTGCCTGCAAGGCTTGAGTGTGTCAGAGGGAGGTGGAATTCCGCGT
+>1001.SKB1_9 orig_bc=TAACTTGCGGAC new_bc=TAACTTGCGGAC bc_diffs=0
+TACGAAGGGGACTAGCGTTGTTCGGAATCACTGGGCGTAAAGCGCACGTAGGCGGATATGTCAGTCAGGGGTGAAATC\
+CCGGGGCTCAACCTCGGAACTGCCTTTGATACAGCGTCTCTTGAGTCCGATAGAGGCGGGTGGCATTCCTAGT
 """
 
 if __name__ == '__main__':
