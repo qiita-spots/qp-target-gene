@@ -12,7 +12,7 @@ from os import getcwd
 import httpretty
 from qiita_client import QiitaClient
 
-from tgp.util import system_call
+from qp_target_gene.util import system_call
 
 
 class UtilTests(TestCase):
@@ -35,7 +35,7 @@ class UtilTests(TestCase):
     def test_system_call_error(self):
         obs_out, obs_err, obs_val = system_call("IHopeThisCommandDoesNotExist")
         self.assertEqual(obs_out, "")
-        self.assertTrue("command not found" in obs_err)
+        self.assertTrue("not found" in obs_err)
         self.assertEqual(obs_val, 127)
 
 

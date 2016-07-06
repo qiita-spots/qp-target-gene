@@ -11,7 +11,7 @@ from functools import partial
 from glob import glob
 from tarfile import open as taropen
 
-from tgp.util import system_call
+from qp_target_gene.util import system_call
 
 
 def write_parameters_file(fp, parameters):
