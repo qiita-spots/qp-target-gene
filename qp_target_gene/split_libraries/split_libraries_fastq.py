@@ -151,8 +151,8 @@ def generate_split_libraries_fastq_cmd(filepaths, mapping_file, atype,
 
     Parameters
     ----------
-    filepaths : list of (str, str)
-        The artifact filepaths and their type
+    filepaths : dict of {str: list of str}
+        The artifact filepaths keyed by type
     mapping_file : str
         The artifact QIIME-compliant mapping file
     atype : str
@@ -167,27 +167,13 @@ def generate_split_libraries_fastq_cmd(filepaths, mapping_file, atype,
 
     Raises
     ------
-    NotImplementedError
-        If there is a not supported filepath type
     ValueError
         If the number of barcode files and the number of sequence files do not
         match
     """
-    forward_seqs = []
-    reverse_seqs = []
-    barcode_fps = []
-    for fp, fp_type in filepaths:
-        if fp_type == 'raw_forward_seqs':
-            forward_seqs.append(fp)
-        elif fp_type == 'raw_reverse_seqs':
-            reverse_seqs.append(fp)
-        elif fp_type == 'raw_barcodes':
-            barcode_fps.append(fp)
-        elif fp_type == 'html_summary':
-            # Ignore the HTML summary file
-            continue
-        else:
-            raise NotImplementedError("File type not supported %s" % fp_type)
+    forward_seqs = filepaths.get('raw_forward_seqs', [])
+    reverse_seqs = filepaths.get('raw_reverse_seqs', [])
+    barcode_fps = filepaths.get('raw_barcodes', [])
 
     # We need to sort the filepaths to make sure that each lane's file is in
     # the same order, so they match when passed to split_libraries_fastq.py
