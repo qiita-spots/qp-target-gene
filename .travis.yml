@@ -12,7 +12,7 @@ before_install:
 install:
   # At this moment, this plugin depends on qiita, so install everything in the same environment
   - travis_retry conda create --yes -n qiita_env python=2.7 pip nose flake8
-    pyzmq networkx pyparsing natsort mock future libgfortran httpretty
+    pyzmq networkx pyparsing natsort mock future libgfortran
     'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
   - source activate qiita_env
   - pip install sphinx sphinx-bootstrap-theme coveralls ipython[all]==2.4.1
