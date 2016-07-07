@@ -11,6 +11,8 @@ from functools import partial
 from glob import glob
 from tarfile import open as taropen
 
+from qiita_client import ArtifactInfo
+
 from qp_target_gene.util import system_call
 
 
@@ -52,33 +54,17 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
     str, str
         The pick_closed_reference_otus.py command
         The output directory
-
-    Raises
-    ------
-    ValueError
-        If there is no sequence file fount in the artifact
     """
-    seqs_fp = None
-    for fp, fp_type in filepaths:
-        if fp_type == 'preprocessed_fasta':
-            seqs_fp = fp
-            break
-
-    if not seqs_fp:
-        raise ValueError("No sequence file found on the artifact")
+    # It should be only a single preprocessed fasta file
+    seqs_fp = filepaths['preprocessed_fasta'][0]
 
     output_dir = join(out_dir, 'cr_otus')
     param_fp = join(out_dir, 'cr_params.txt')
 
     write_parameters_file(param_fp, parameters)
 
-    reference_fp = None
-    taxonomy_fp = None
-    for rfp, rfp_type in reference_fps:
-        if rfp_type == 'reference_seqs':
-            reference_fp = rfp
-        elif rfp_type == 'reference_tax':
-            taxonomy_fp = rfp
+    reference_fp = reference_fps['reference_seqs']
+    taxonomy_fp = reference_fps.get('reference_tax', None)
 
     params_str = "-t %s" % taxonomy_fp if taxonomy_fp else ""
 
@@ -124,7 +110,7 @@ def generate_artifact_info(pick_out):
                  (path_builder('sortmerna_picked_otus'), 'directory'),
                  (path_builder('sortmerna_picked_otus.tgz'), 'tgz'),
                  (glob(path_builder('log_*.txt'))[0], 'log')]
-    return [['OTU table', 'BIOM', filepaths]]
+    return [ArtifactInfo('OTU table', 'BIOM', filepaths)]
 
 
 def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
@@ -153,12 +139,12 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
     """
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
     artifact_id = parameters['input_data']
-    fps_info = qclient.get("/qiita_db/artifacts/%s/filepaths/" % artifact_id)
-    fps = fps_info['filepaths']
+    a_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
+    fps = a_info['files']
 
     reference_id = parameters['reference']
-    ref_info = qclient.get("/qiita_db/references/%s/filepaths/" % reference_id)
-    reference_fps = ref_info['filepaths']
+    ref_info = qclient.get("/qiita_db/references/%s/" % reference_id)
+    reference_fps = ref_info['files']
 
     qclient.update_job_step(job_id, "Step 2 of 4: Generating command")
     command, pick_out = generate_pick_closed_reference_otus_cmd(

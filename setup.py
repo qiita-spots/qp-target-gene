@@ -42,7 +42,7 @@ setup(name='qp-target-gene',
       packages=['qp_target_gene', 'qp_target_gene/split_libraries'],
       package_data={'qp_target_gene': ['support_files/config_file.cfg']},
       scripts=glob('scripts/*'),
-      extras_require={'test': ["nose >= 0.10.1", "pep8", 'httpretty']},
+      extras_require={'test': ["nose >= 0.10.1", "pep8"]},
       install_requires=['click >= 3.3', 'future', 'requests', 'pandas >= 0.15',
                         'h5py >= 2.3.1', 'qiime >= 1.9.0, < 1.10.0'],
       classifiers=classifiers

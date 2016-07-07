@@ -9,30 +9,35 @@
 # -----------------------------------------------------------------------------
 
 from unittest import TestCase, main
-from os.path import isdir, exists, join
+from os.path import isdir, exists, join, basename
 from shutil import rmtree
-from os import remove, close
+from os import remove, close, environ
 from tempfile import mkdtemp, mkstemp
 
-import httpretty
-from qiita_client import QiitaClient
+from qiita_client import QiitaClient, ArtifactInfo
 
 from qp_target_gene.split_libraries.util import (
     get_artifact_information, split_mapping_file, generate_demux_file,
     generate_artifact_info)
 
 
-class UtilTests(TestCase):
-    @httpretty.activate
-    def setUp(self):
-        httpretty.register_uri(
-            httpretty.POST,
-            "https://test_server.com/qiita_db/authenticate/",
-            body='{"access_token": "token", "token_type": "Bearer", '
-                 '"expires_in": "3600"}')
+CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
+CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
+                 'AmmCWZuabe0O5Mp28s1')
 
-        self.qclient = QiitaClient("https://test_server.com", 'client_id',
-                                   'client_secret')
+
+class UtilTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        server_cert = environ.get('QIITA_SERVER_CERT', None)
+        cls.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
+                                  CLIENT_SECRET, server_cert=server_cert)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.qclient.post("/apitest/reset/")
+
+    def setUp(self):
         self._clean_up_files = []
 
     def tearDown(self):
@@ -43,30 +48,18 @@ class UtilTests(TestCase):
                 else:
                     remove(fp)
 
-    @httpretty.activate
     def test_get_artifact_information(self):
-        # Mock the URIs
-        httpretty.register_uri(
-            httpretty.GET,
-            "https://test_server.com/qiita_db/artifacts/1/filepaths/",
-            body='{"filepaths": [["forward_seqs.fastq.gz", "raw_forward_seqs"]'
-                 ', ["barcodes.fastq.gz", "raw_barcodes"]]}')
-        httpretty.register_uri(
-            httpretty.GET,
-            "https://test_server.com/qiita_db/artifacts/1/mapping/",
-            body='{"mapping": "mapping_file.txt"}')
-        httpretty.register_uri(
-            httpretty.GET,
-            "https://test_server.com/qiita_db/artifacts/1/type/",
-            body='{"type": "FASTQ"}')
+        obs_fps, obs_map, obs_at = get_artifact_information(self.qclient, 1)
 
-        obs_fps, obs_mf, obs_at = get_artifact_information(self.qclient, 1)
-
-        exp_fps = [["forward_seqs.fastq.gz", "raw_forward_seqs"],
-                   ["barcodes.fastq.gz", "raw_barcodes"]]
+        for k in obs_fps:
+            obs_fps[k] = [basename(v) for v in obs_fps[k]]
+        exp_fps = {
+            'raw_barcodes': ['1_s_G1_L001_sequences_barcodes.fastq.gz'],
+            'raw_forward_seqs': ['1_s_G1_L001_sequences.fastq.gz']}
         self.assertEqual(obs_fps, exp_fps)
-        self.assertEqual(obs_mf, "mapping_file.txt")
         self.assertEqual(obs_at, "FASTQ")
+        self.assertEqual(basename(obs_map),
+                         '1_prep_1_qiime_19700101-000000.txt')
 
     def test_split_mapping_file_single(self):
         out_dir = mkdtemp()
@@ -138,7 +131,7 @@ class UtilTests(TestCase):
                ("/sl/output/seqs.fastq", "preprocessed_fastq"),
                ("/sl/output/seqs.demux", "preprocessed_demux"),
                ("/sl/output/split_library_log.txt", "log")]
-        exp = [['demultiplexed', 'Demultiplexed', fps]]
+        exp = [ArtifactInfo('demultiplexed', 'Demultiplexed', fps)]
         self.assertEqual(obs, exp)
 
 
