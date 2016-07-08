@@ -7,17 +7,35 @@
 # -----------------------------------------------------------------------------
 
 from unittest import TestCase, main
-from os.path import isdir, exists, join
-from os import remove
-from shutil import rmtree
-from tempfile import mkdtemp
+from os.path import isdir, exists, join, dirname
+from os import remove, environ, close
+from shutil import rmtree, copyfile
+from tempfile import mkdtemp, mkstemp
+from json import dumps
+from functools import partial
+
+from qiita_client import QiitaClient, ArtifactInfo
 
 from qp_target_gene.split_libraries.split_libraries import (
     generate_parameters_string, generate_process_sff_commands,
-    generate_split_libraries_cmd)
+    generate_split_libraries_cmd, split_libraries)
+
+CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
+CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
+                 'AmmCWZuabe0O5Mp28s1')
 
 
 class SplitLibrariesTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        server_cert = environ.get('QIITA_SERVER_CERT', None)
+        cls.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
+                                  CLIENT_SECRET, server_cert=server_cert)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.qclient.post('/apitest/reset/')
+
     def setUp(self):
         self._clean_up_files = []
 
@@ -149,11 +167,120 @@ class SplitLibrariesTests(TestCase):
                       join(out_dir, 'prefix_2_mapping_file')]
         self.assertEqual(obs_outdir, exp_outdir)
 
+    def _create_qiita_bits(self, files):
+        # Create a new prep template
+        prep_info = {
+            'SKB2.640194': {'barcode': 'AGCACGAGCCTA',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'},
+            'SKM4.640180': {'barcode': 'AACTCGTCGATG',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'},
+            'SKB3.640195': {'barcode': 'ACAGACCACTCA',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'},
+            'SKB6.640176': {'barcode': 'ACCAGCGACTAG',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'},
+            'SKD6.640190': {'barcode': 'AGCAGCACTTGT',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'},
+            'SKM6.640187': {'barcode': 'AACTGTGCGTAC',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'},
+            'SKD9.640182': {'barcode': 'ACAGAGTCGGCT',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'},
+            'SKM8.640201': {'barcode': 'ACCGCAGAGTCA',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'},
+            'SKM2.640199': {'barcode': 'ACGGTGAGTGTC',
+                            'primer': 'YATGCTGCCTCCCGTAGGAGT'}}
+        data = {'prep_info': dumps(prep_info),
+                'study': 1,
+                'data_type': '16S'}
+        template = self.qclient.post(
+            '/apitest/prep_template/', data=data)['prep']
+
+        # Create a new artifact attached to the previous template
+        data = {'filepaths': dumps(files),
+                'type': 'FASTA',
+                'name': 'Test artitact for split libraries',
+                'prep': template}
+        artifact = self.qclient.post(
+            '/apitest/artifact/', data=data)['artifact']
+
+        # Create a new job
+        parameters = {"min_seq_len": 200,
+                      "max_seq_len": 1000,
+                      "trim_seq_length": False,
+                      "min_qual_score": 25,
+                      "max_ambig": 6,
+                      "max_homopolymer": 6,
+                      "max_primer_mismatch": 0,
+                      "barcode_type": "golay_12",
+                      "max_barcode_errors": 1.5,
+                      "disable_bc_correction": False,
+                      "qual_score_window": 0,
+                      "disable_primers": False,
+                      "reverse_primers": "disable",
+                      "reverse_primer_mismatches": 0,
+                      "truncate_ambi_bases": False,
+                      "input_data": artifact}
+        data = {'user': 'demo@microbio.me',
+                'command': 2,
+                'status': 'running',
+                'parameters': dumps(parameters)}
+        job_id = self.qclient.post(
+            '/apitest/processing_job/', data=data)['job']
+
+        return job_id, parameters
+
     def test_split_libraries(self):
-        # This requires to run split libraries so I don't think that we want
-        # to run a test in here - at least, not until we split up the plugin
-        # to its own project
-        pass
+        fd, reads_fp = mkstemp(suffix='.fna.gz')
+        close(fd)
+        self._clean_up_files.append(reads_fp)
+        fd, qual_fp = mkstemp(suffix='.qual.gz')
+        close(fd)
+        self._clean_up_files.append(qual_fp)
+
+        path_builder = partial(join, dirname(__file__), 'test_data')
+        copyfile(path_builder('example_seqs.fna.gz'), reads_fp)
+        copyfile(path_builder('example_quals.fna.gz'), qual_fp)
+        files = [(reads_fp, 'raw_fasta'), (qual_fp, 'raw_qual')]
+        job_id, parameters = self._create_qiita_bits(files)
+
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        obs_success, obs_ainfo, obs_msg = split_libraries(
+            self.qclient, job_id, parameters, out_dir)
+
+        self.assertTrue(obs_success)
+        path_builder = partial(join, out_dir, 'sl_out')
+        fps = [(path_builder('seqs.fna'), 'preprocessed_fasta'),
+               (path_builder('seqs.fastq'), 'preprocessed_fastq'),
+               (path_builder('seqs.demux'), 'preprocessed_demux'),
+               (path_builder('split_library_log.txt'), 'log')]
+        exp_ainfo = [ArtifactInfo('demultiplexed', 'Demultiplexed', fps)]
+        self.assertEqual(obs_ainfo, exp_ainfo)
+        self.assertEqual(obs_msg, "")
+
+    def test_split_libraries_sff(self):
+        fd, sff_fp = mkstemp(suffix='.sff.gz')
+        close(fd)
+        self._clean_up_files.append(sff_fp)
+        copyfile(join(dirname(__file__), 'test_data', 'example_sff.sff.gz'),
+                 sff_fp)
+        job_id, parameters = self._create_qiita_bits([(sff_fp, 'raw_sff')])
+
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+
+        obs_success, obs_ainfo, obs_msg = split_libraries(
+            self.qclient, job_id, parameters, out_dir)
+
+        self.assertTrue(obs_success)
+        path_builder = partial(join, out_dir, 'sl_out')
+        fps = [(path_builder('seqs.fna'), 'preprocessed_fasta'),
+               (path_builder('seqs.fastq'), 'preprocessed_fastq'),
+               (path_builder('seqs.demux'), 'preprocessed_demux'),
+               (path_builder('split_library_log.txt'), 'log')]
+        exp_ainfo = [ArtifactInfo('demultiplexed', 'Demultiplexed', fps)]
+        self.assertEqual(obs_ainfo, exp_ainfo)
+        self.assertEqual(obs_msg, "")
 
 
 MAPPING_FILE_SINGLE = (

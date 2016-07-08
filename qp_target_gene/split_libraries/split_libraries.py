@@ -172,8 +172,6 @@ def split_libraries(qclient, job_id, parameters, out_dir):
 
     Raises
     ------
-    NotImplementedError
-        If one of the filepath types attached to the artifact is not recognized
     ValueError
         If the artifact has SFF and fasta files
         IF the artifact has qual files but not fasta files
@@ -191,21 +189,9 @@ def split_libraries(qclient, job_id, parameters, out_dir):
 
     # Step 2 generate the split libraries command
     qclient.update_job_step(job_id, "Step 2 of 4: preparing files")
-    sffs = []
-    seqs = []
-    quals = []
-    for fp, fp_type in filepaths:
-        if fp_type == 'raw_sff':
-            sffs.append(fp)
-        elif fp_type == 'raw_fasta':
-            seqs.append(fp)
-        elif fp_type == 'raw_qual':
-            quals.append(fp)
-        elif fp_type == 'html_summary':
-            # Ignore the HTML summary file
-            continue
-        else:
-            raise NotImplementedError("File type not supported %s" % fp_type)
+    sffs = filepaths.get('raw_sff', [])
+    seqs = filepaths.get('raw_fasta', [])
+    quals = filepaths.get('raw_qual', [])
 
     if seqs and sffs:
         raise ValueError('Cannot have SFF and raw fasta on the same artifact')
@@ -288,4 +274,4 @@ def split_libraries(qclient, job_id, parameters, out_dir):
 
     artifacts_info = generate_artifact_info(output_dir)
 
-    return False, artifacts_info, ""
+    return True, artifacts_info, ""
