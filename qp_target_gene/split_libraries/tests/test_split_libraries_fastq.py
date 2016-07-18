@@ -121,7 +121,8 @@ class SplitLibrariesFastqTests(TestCase):
         with open(fp, 'w') as f:
             f.write(MAPPING_FILE_3)
         self._clean_up_files.append(fp)
-        forward_seqs = ["100_s1.fastq.gz", "100_s2.fastq.gz", "100_s3.fastq.gz"]
+        forward_seqs = ["100_s1.fastq.gz", "100_s2.fastq.gz",
+                        "100_s3.fastq.gz"]
         reverse_seqs = ["100_s1_rev.fastq.gz", "100_s2_rev.fastq.gz",
                         "100_s3_rev.fastq.gz"]
         barcode_fps = []
