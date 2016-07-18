@@ -115,6 +115,35 @@ class SplitLibrariesFastqTests(TestCase):
                "--rev_comp_mapping_barcodes")
         self.assertEqual(obs, exp)
 
+    def test_generate_per_sample_fastq_command_with_int_prefixes(self):
+        fd, fp = mkstemp()
+        close(fd)
+        with open(fp, 'w') as f:
+            f.write(MAPPING_FILE_3)
+        self._clean_up_files.append(fp)
+        forward_seqs = ["100_s1.fastq.gz", "100_s2.fastq.gz", "100_s3.fastq.gz"]
+        reverse_seqs = ["100_s1_rev.fastq.gz", "100_s2_rev.fastq.gz",
+                        "100_s3_rev.fastq.gz"]
+        barcode_fps = []
+        mapping_file = fp
+        output_dir = "/output/dir"
+        params_str = (
+            "--max_bad_run_length 3 --min_per_read_length_fraction 0.75 "
+            "--sequence_max_n 0 --phred_quality_threshold 3 "
+            "--barcode_type golay_12 --max_barcode_errors 1.5 "
+            "--rev_comp_mapping_barcodes")
+        obs = generate_per_sample_fastq_command(
+            forward_seqs, reverse_seqs, barcode_fps,
+            mapping_file, output_dir, params_str)
+        exp = ("split_libraries_fastq.py --store_demultiplexed_fastq -i "
+               "100_s1.fastq.gz,100_s2.fastq.gz,100_s3.fastq.gz --sample_ids "
+               "SKB8.640193,SKD8.640184,SKB7.640196 -o /output/dir "
+               "--max_bad_run_length 3 --min_per_read_length_fraction 0.75 "
+               "--sequence_max_n 0 --phred_quality_threshold 3 "
+               "--barcode_type golay_12 --max_barcode_errors 1.5 "
+               "--rev_comp_mapping_barcodes")
+        self.assertEqual(obs, exp)
+
     def test_generate_per_sample_fastq_command_regex(self):
         fd, fp = mkstemp()
         close(fd)
@@ -343,6 +372,15 @@ MAPPING_FILE_2 = (
     "SKB7.640196\tILLUMINA\tA\tA\tA\tANL\tA\ts3\tIllumina MiSeq\tdesc1\n"
     "SKB8.640193\tILLUMINA\tA\tA\tA\tANL\tA\ts1\tIllumina MiSeq\tdesc2\n"
     "SKD8.640184\tILLUMINA\tA\tA\tA\tANL\tA\ts1\tIllumina MiSeq\tdesc3\n"
+)
+
+MAPPING_FILE_3 = (
+    "#SampleID\tplatform\tbarcode\texperiment_design_description\t"
+    "library_construction_protocol\tcenter_name\tprimer\trun_prefix\t"
+    "instrument_model\tDescription\n"
+    "SKB7.640196\tILLUMINA\tA\tA\tA\tANL\tA\t100_s3\tIllumina MiSeq\tdesc1\n"
+    "SKB8.640193\tILLUMINA\tA\tA\tA\tANL\tA\t100_s1\tIllumina MiSeq\tdesc2\n"
+    "SKD8.640184\tILLUMINA\tA\tA\tA\tANL\tA\t100_s2\tIllumina MiSeq\tdesc3\n"
 )
 
 READS = """@M00176:18:000000000-A0DK4:1:1:15579:1518 1:N:0:0
