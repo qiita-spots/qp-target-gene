@@ -6,16 +6,17 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from unittest import TestCase, main
+from unittest import main
 from os.path import isdir, exists, join, dirname
-from os import remove, close, mkdir, environ
+from os import remove, close, mkdir
 from shutil import rmtree, copyfile
 from tempfile import mkstemp, mkdtemp
 from json import dumps
 from functools import partial
 from glob import glob
 
-from qiita_client import QiitaClient, ArtifactInfo
+from qiita_client import ArtifactInfo
+from qiita_client.testing import PluginTestCase
 
 from qp_target_gene.pick_otus import (
     write_parameters_file, generate_artifact_info,
@@ -27,17 +28,7 @@ CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
                  'AmmCWZuabe0O5Mp28s1')
 
 
-class PickOTUsTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        server_cert = environ.get('QIITA_SERVER_CERT', None)
-        cls.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                                  CLIENT_SECRET, server_cert=server_cert)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.qclient.post('/apitest/reset/')
-
+class PickOTUsTests(PluginTestCase):
     def setUp(self):
         self._clean_up_files = []
 
@@ -119,7 +110,8 @@ class PickOTUsTests(TestCase):
                       "threads": 1,
                       "input_data": 2}
         data = {'user': 'demo@microbio.me',
-                'command': 3,
+                'command': dumps(['QIIME', '1.9.1',
+                                  'Pick closed-reference OTUs']),
                 'status': 'running',
                 'parameters': dumps(parameters)}
         job_id = self.qclient.post(

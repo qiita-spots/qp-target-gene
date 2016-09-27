@@ -6,16 +6,17 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from unittest import TestCase, main
+from unittest import main
 from os.path import isdir, exists, join
-from os import remove, close, environ
+from os import remove, close
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
 from json import dumps
 from gzip import GzipFile
 from functools import partial
 
-from qiita_client import QiitaClient, ArtifactInfo
+from qiita_client import ArtifactInfo
+from qiita_client.testing import PluginTestCase
 
 from qp_target_gene.split_libraries.split_libraries_fastq import (
     generate_parameters_string, get_sample_names_by_run_prefix,
@@ -23,22 +24,7 @@ from qp_target_gene.split_libraries.split_libraries_fastq import (
     split_libraries_fastq)
 
 
-CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
-CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
-                 'AmmCWZuabe0O5Mp28s1')
-
-
-class SplitLibrariesFastqTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        server_cert = environ.get('QIITA_SERVER_CERT', None)
-        cls.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                                  CLIENT_SECRET, server_cert=server_cert)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.qclient.post('/apitest/reset/')
-
+class SplitLibrariesFastqTests(PluginTestCase):
     def setUp(self):
         self._clean_up_files = []
 
@@ -323,7 +309,7 @@ class SplitLibrariesFastqTests(TestCase):
                       "phred_offset": "",
                       "input_data": 1}
         data = {'user': 'demo@microbio.me',
-                'command': 1,
+                'command': dumps(['QIIME', '1.9.1', 'Split libraries FASTQ']),
                 'status': 'running',
                 'parameters': dumps(parameters)}
         job_id = self.qclient.post(
