@@ -32,9 +32,10 @@ def generate_parameters_string(parameters):
     flag_params = ['rev_comp_barcode', 'rev_comp_mapping_barcodes', 'rev_comp']
     str_params = ['max_bad_run_length', 'min_per_read_length_fraction',
                   'sequence_max_n', 'phred_quality_threshold', 'barcode_type',
-                  'max_barcode_errors', 'phred_offset']
-    result = ["--%s %s" % (sp, parameters[sp]) for sp in str_params
-              if parameters[sp] != ""]
+                  'max_barcode_errors']
+    result = ["--%s %s" % (sp, parameters[sp]) for sp in str_params]
+    if parameters['phred_offset'] != 'auto':
+        result.append("--phred_offset %s" % parameters['phred_offset'])
     for fp in flag_params:
         if parameters[fp]:
             result.append("--%s" % fp)

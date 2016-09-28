@@ -42,7 +42,7 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "sequence_max_n": 0, "rev_comp_barcode": False,
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
-            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": ""}
+            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
 
         obs = generate_parameters_string(parameters)
         exp = ("--max_bad_run_length 3 --min_per_read_length_fraction 0.75 "
@@ -222,7 +222,7 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "sequence_max_n": 0, "rev_comp_barcode": False,
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
-            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": ""}
+            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
         obs_cmd, obs_outdir = generate_split_libraries_fastq_cmd(
             fps, mapping_file, atype, out_dir, parameters)
 
@@ -258,7 +258,7 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "sequence_max_n": 0, "rev_comp_barcode": False,
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
-            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": ""}
+            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
         obs_cmd, obs_outdir = generate_split_libraries_fastq_cmd(
             fps, mapping_file, atype, out_dir, parameters)
         exp_cmd = (
@@ -290,7 +290,7 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "sequence_max_n": 0, "rev_comp_barcode": False,
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
-            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": ""}
+            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
         with self.assertRaises(ValueError):
             generate_split_libraries_fastq_cmd(
                 fps, mapping_file, atype, out_dir, parameters)
@@ -306,7 +306,7 @@ class SplitLibrariesFastqTests(PluginTestCase):
                       "phred_quality_threshold": 3,
                       "barcode_type": "golay_12",
                       "max_barcode_errors": 1.5,
-                      "phred_offset": "",
+                      "phred_offset": "auto",
                       "input_data": 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(['QIIME', '1.9.1', 'Split libraries FASTQ']),
