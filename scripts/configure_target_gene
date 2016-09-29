@@ -14,11 +14,11 @@ from qp_target_gene import plugin
 
 
 @click.command()
-def config():
+@click.option('--env-script', prompt='Environment script',
+              default='source activate qp-target-gene')
+@click.option('--server-cert', prompt='Server certificate', default='None')
+def config(env_script, server_cert):
     """Generates the Qiita configuration files"""
-    env_script = click.prompt('Environment script',
-                              default='source activate qp-target-gene')
-    server_cert = click.prompt('Server certificate', default='None')
     if server_cert == 'None':
         server_cert = None
     plugin.generate_config(env_script, 'start_target_gene',
