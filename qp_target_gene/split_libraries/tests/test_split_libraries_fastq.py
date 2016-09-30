@@ -6,16 +6,17 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from unittest import TestCase, main
+from unittest import main
 from os.path import isdir, exists, join
-from os import remove, close, environ
+from os import remove, close
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
 from json import dumps
 from gzip import GzipFile
 from functools import partial
 
-from qiita_client import QiitaClient, ArtifactInfo
+from qiita_client import ArtifactInfo
+from qiita_client.testing import PluginTestCase
 
 from qp_target_gene.split_libraries.split_libraries_fastq import (
     generate_parameters_string, get_sample_names_by_run_prefix,
@@ -23,22 +24,7 @@ from qp_target_gene.split_libraries.split_libraries_fastq import (
     split_libraries_fastq)
 
 
-CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
-CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
-                 'AmmCWZuabe0O5Mp28s1')
-
-
-class SplitLibrariesFastqTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        server_cert = environ.get('QIITA_SERVER_CERT', None)
-        cls.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                                  CLIENT_SECRET, server_cert=server_cert)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.qclient.post('/apitest/reset/')
-
+class SplitLibrariesFastqTests(PluginTestCase):
     def setUp(self):
         self._clean_up_files = []
 
@@ -56,7 +42,7 @@ class SplitLibrariesFastqTests(TestCase):
             "sequence_max_n": 0, "rev_comp_barcode": False,
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
-            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": ""}
+            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
 
         obs = generate_parameters_string(parameters)
         exp = ("--max_bad_run_length 3 --min_per_read_length_fraction 0.75 "
@@ -236,7 +222,7 @@ class SplitLibrariesFastqTests(TestCase):
             "sequence_max_n": 0, "rev_comp_barcode": False,
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
-            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": ""}
+            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
         obs_cmd, obs_outdir = generate_split_libraries_fastq_cmd(
             fps, mapping_file, atype, out_dir, parameters)
 
@@ -272,7 +258,7 @@ class SplitLibrariesFastqTests(TestCase):
             "sequence_max_n": 0, "rev_comp_barcode": False,
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
-            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": ""}
+            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
         obs_cmd, obs_outdir = generate_split_libraries_fastq_cmd(
             fps, mapping_file, atype, out_dir, parameters)
         exp_cmd = (
@@ -304,7 +290,7 @@ class SplitLibrariesFastqTests(TestCase):
             "sequence_max_n": 0, "rev_comp_barcode": False,
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
-            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": ""}
+            "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
         with self.assertRaises(ValueError):
             generate_split_libraries_fastq_cmd(
                 fps, mapping_file, atype, out_dir, parameters)
@@ -320,10 +306,10 @@ class SplitLibrariesFastqTests(TestCase):
                       "phred_quality_threshold": 3,
                       "barcode_type": "golay_12",
                       "max_barcode_errors": 1.5,
-                      "phred_offset": "",
+                      "phred_offset": "auto",
                       "input_data": 1}
         data = {'user': 'demo@microbio.me',
-                'command': 1,
+                'command': dumps(['QIIME', '1.9.1', 'Split libraries FASTQ']),
                 'status': 'running',
                 'parameters': dumps(parameters)}
         job_id = self.qclient.post(

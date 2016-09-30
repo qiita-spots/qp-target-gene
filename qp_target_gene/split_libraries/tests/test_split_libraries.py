@@ -6,36 +6,23 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from unittest import TestCase, main
+from unittest import main
 from os.path import isdir, exists, join, dirname
-from os import remove, environ, close
+from os import remove, close
 from shutil import rmtree, copyfile
 from tempfile import mkdtemp, mkstemp
 from json import dumps
 from functools import partial
 
-from qiita_client import QiitaClient, ArtifactInfo
+from qiita_client import ArtifactInfo
+from qiita_client.testing import PluginTestCase
 
 from qp_target_gene.split_libraries.split_libraries import (
     generate_parameters_string, generate_process_sff_commands,
     generate_split_libraries_cmd, split_libraries)
 
-CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
-CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
-                 'AmmCWZuabe0O5Mp28s1')
 
-
-class SplitLibrariesTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        server_cert = environ.get('QIITA_SERVER_CERT', None)
-        cls.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                                  CLIENT_SECRET, server_cert=server_cert)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.qclient.post('/apitest/reset/')
-
+class SplitLibrariesTests(PluginTestCase):
     def setUp(self):
         self._clean_up_files = []
 
@@ -220,7 +207,7 @@ class SplitLibrariesTests(TestCase):
                       "truncate_ambi_bases": False,
                       "input_data": artifact}
         data = {'user': 'demo@microbio.me',
-                'command': 2,
+                'command': dumps(['QIIME', '1.9.1', 'Split libraries']),
                 'status': 'running',
                 'parameters': dumps(parameters)}
         job_id = self.qclient.post(

@@ -8,35 +8,21 @@
 # The full license is in the file LICENSE, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from unittest import TestCase, main
+from unittest import main
 from os.path import isdir, exists, join, basename
 from shutil import rmtree
-from os import remove, close, environ
+from os import remove, close
 from tempfile import mkdtemp, mkstemp
 
-from qiita_client import QiitaClient, ArtifactInfo
+from qiita_client import ArtifactInfo
+from qiita_client.testing import PluginTestCase
 
 from qp_target_gene.split_libraries.util import (
     get_artifact_information, split_mapping_file, generate_demux_file,
     generate_artifact_info)
 
 
-CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
-CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
-                 'AmmCWZuabe0O5Mp28s1')
-
-
-class UtilTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        server_cert = environ.get('QIITA_SERVER_CERT', None)
-        cls.qclient = QiitaClient("https://localhost:21174", CLIENT_ID,
-                                  CLIENT_SECRET, server_cert=server_cert)
-
-    @classmethod
-    def tearDownClass(cls):
-        cls.qclient.post("/apitest/reset/")
-
+class UtilTests(PluginTestCase):
     def setUp(self):
         self._clean_up_files = []
 
