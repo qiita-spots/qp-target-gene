@@ -13,10 +13,7 @@ from os import makedirs, stat
 import pandas as pd
 from h5py import File
 from qiita_client import ArtifactInfo
-# Currently the EBI submission is not part of the target gene plugin
-# and the demux file is not its own project, so we need to import from
-# qiita_ware. Plans are to the EBI submission to the target gene plugin
-from qiita_ware.demux import to_hdf5
+from qiita_files.demux import to_hdf5
 
 
 def get_artifact_information(qclient, artifact_id):
