@@ -91,16 +91,10 @@ def trimming(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     qclient.update_job_step(job_id, "Step 2 of 3: Executing Trimming")
-    try:
-        generate_trimming(fps['preprocessed_demux'], out_dir, parameters)
-    except Exception as e:
-        return False, None, "Error executing trimming: %s" % e.message
+    generate_trimming(fps['preprocessed_demux'], out_dir, parameters)
 
     qclient.update_job_step(job_id, "Step 3 of 3: Generating new Demuxed")
-    try:
-        generate_demux_file(out_dir)
-    except Exception as e:
-        return False, None, "Error executing trimming: %s" % e.message
+    generate_demux_file(out_dir)
 
     pb = partial(join, out_dir)
     ainfo = [
