@@ -29,12 +29,6 @@ def generate_trimming(filepaths, out_dir, parameters):
         The job output directory
     parameters : dict
         The command's parameters, keyed by parameter name
-
-    Returns
-    -------
-    str
-        The pick_closed_reference_otus.py command
-        The output directory
     """
     length = parameters['length']
 
@@ -67,12 +61,15 @@ def trimming(qclient, job_id, parameters, out_dir):
     parameters : dict
         The parameter values to run split libraries
     out_dir : str
-        Yhe path to the job's output directory
+        The path to the job's output directory
 
     Returns
     -------
     bool, list, str
-        The results of the job
+        The results of the job.
+            bool: if the job was successful
+            list: artifacts created, can be None
+            str: error message, "" if no error was generated
     """
     qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
     artifact_id = parameters['input_data']

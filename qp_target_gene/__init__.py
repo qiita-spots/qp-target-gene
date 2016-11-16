@@ -163,7 +163,7 @@ outputs = {'Trimmed Demultiplexed': 'Demultiplexed'}
 dflt_param_set = {
     'Trimming 90': {'length': 90},
     'Trimming 100': {'length': 100},
-    'Trimming 150': {'length': 150},
+    'Trimming 150': {'length': 150}
 }
 trim_cmd = QiitaCommand(
     "Trimming", "Trimming sequences to the same length",

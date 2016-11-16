@@ -47,7 +47,7 @@ setup(name='qp-target-gene',
                         'h5py >= 2.3.1', 'qiime >= 1.9.0, < 1.10.0',
                         'qiita-files'],
       dependency_links=[
-        'https://github.com/qiita-spots/qiita-files/archive/master.zip#'
-        'egg=qiita-files-0.1.0-dev'],
+          'https://github.com/qiita-spots/qiita-files/archive/master.zip#'
+          'egg=qiita-files-0.1.0-dev'],
       classifiers=classifiers
       )
