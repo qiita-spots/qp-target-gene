@@ -21,11 +21,6 @@ from qp_target_gene.trimming import (trimming)
 from qp_target_gene import plugin
 
 
-CLIENT_ID = '19ndkO3oMKsoChjVVWluF7QkxHRfYhTKSFbAVt8IhK7gZgDaO4'
-CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
-                 'AmmCWZuabe0O5Mp28s1')
-
-
 class TrimmingTest(PluginTestCase):
     def setUp(self):
         plugin("https://localhost:21174", 'register', 'ignored')

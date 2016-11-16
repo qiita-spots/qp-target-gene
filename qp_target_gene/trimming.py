@@ -19,7 +19,7 @@ from qiita_files.format.fastq import format_fastq_record
 
 
 def generate_trimming(filepaths, out_dir, parameters):
-    """Generates the pick_closed_reference_otus.py command
+    """Generate the trimming of the filepaths
 
     Parameters
     ----------
@@ -41,25 +41,22 @@ def generate_trimming(filepaths, out_dir, parameters):
     id_fmt = (b"%(sample)s_%(idx)d orig_bc=%(bc_ori)s new_bc=%(bc_cor)s "
               b"bc_diffs=%(bc_diff)d")
     pd = partial(join, out_dir)
-    fna_fp = pd('seqs.fna')
-    fastq_fp = pd('seqs.fastq')
-    fna_fh = open(fna_fp, 'w')
-    fastq_fh = open(fastq_fp, 'w')
+    ffp = pd('seqs.fna')
+    qfp = pd('seqs.fastq')
     for f in filepaths:
-        for samp, idx, seq, qual, bc_ori, bc_cor, bc_err in fetch(File(f)):
-            seq_id = id_fmt % {b'sample': samp, b'idx': idx, b'bc_ori': bc_ori,
-                               b'bc_cor': bc_cor, b'bc_diff': bc_err}
-
-            fna_fh.write(
-                format_fasta_record(seq_id, seq[:length], qual[:length]))
-            fastq_fh.write(
-                format_fastq_record(seq_id, seq[:length], qual[:length]))
-    fna_fh.close()
-    fastq_fh.close()
+        with open(ffp, 'w') as ffh, open(qfp, 'w') as qfh, File(f) as fh:
+            for samp, idx, seq, qual, bc_ori, bc_cor, bc_err in fetch(fh):
+                seq_id = id_fmt % {b'sample': samp, b'idx': idx,
+                                   b'bc_ori': bc_ori, b'bc_cor': bc_cor,
+                                   b'bc_diff': bc_err}
+                ffh.write(
+                    format_fasta_record(seq_id, seq[:length], qual[:length]))
+                qfh.write(
+                    format_fastq_record(seq_id, seq[:length], qual[:length]))
 
 
 def trimming(qclient, job_id, parameters, out_dir):
-    """Run split libraries fastq with the given parameters
+    """Run trimming over the given parameters
 
     Parameters
     ----------
@@ -76,11 +73,6 @@ def trimming(qclient, job_id, parameters, out_dir):
     -------
     bool, list, str
         The results of the job
-
-    Raises
-    ------
-    ValueError
-        If there is any error gathering the information from the server
     """
     qclient.update_job_step(job_id, "Step 1 of 3: Collecting information")
     artifact_id = parameters['input_data']
