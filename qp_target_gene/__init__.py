@@ -160,7 +160,11 @@ plugin.register_command(po_cmd)
 req_params = {'input_data': ('artifact', ['Demultiplexed'])}
 opt_params = {'length': ['integer', '100']}
 outputs = {'Trimmed Demultiplexed': 'Demultiplexed'}
-dflt_param_set = {'Defaults': {'length': 100}}
+dflt_param_set = {
+    'Trimming 90': {'length': 90},
+    'Trimming 100': {'length': 100},
+    'Trimming 150': {'length': 150},
+}
 trim_cmd = QiitaCommand(
     "Trimming", "Trimming sequences to the same length",
     trimming, req_params, opt_params, outputs, dflt_param_set)
