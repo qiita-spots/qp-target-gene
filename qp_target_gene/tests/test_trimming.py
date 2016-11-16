@@ -17,7 +17,7 @@ from functools import partial
 from qiita_client import ArtifactInfo
 from qiita_client.testing import PluginTestCase
 
-from qp_target_gene.trimming import (trimming)
+from qp_target_gene.trimming import (trimming, generate_trimming)
 from qp_target_gene import plugin
 
 
@@ -81,6 +81,33 @@ class TrimmingTest(PluginTestCase):
         self.assertEqual(ainfo, exp_ainfo)
         self.assertEqual(msg, "")
 
+    def test_generate_trimming(self):
+        # generating filepaths
+        fd, fp = mkstemp(suffix='_seqs.demux')
+        close(fd)
+        self._clean_up_files.append(fp)
+        copyfile('support_files/filtered_5_seqs.demux', fp)
+
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+        generate_trimming([fp], out_dir, {'length': 10})
+
+        # just gonna check the first 2 seqs
+        pd = partial(join, out_dir)
+        with open(pd('seqs.fna')) as ffh, open(pd('seqs.fastq')) as qfh:
+            fr = ffh.readlines()[:4]
+            qr = qfh.readlines()[:8]
+
+        efr = ['>1.SKB7.640196_0 orig_bc=GAACTTAGGCCG new_bc=GAACTTAGGCCG '
+               'bc_diffs=0\n', 'TACGGAGGGT\n', '>1.SKB7.640196_1 '
+               'orig_bc=GAACTTAGGCCG new_bc=GAACTTAGGCCG bc_diffs=0\n',
+               'TACGTAGGGT\n']
+        eqr = ['@1.SKB7.640196_0 orig_bc=GAACTTAGGCCG new_bc=GAACTTAGGCCG '
+               'bc_diffs=0\n', 'TACGGAGGGT\n', '+\n', '==?DDADD:F\n',
+               '@1.SKB7.640196_1 orig_bc=GAACTTAGGCCG new_bc=GAACTTAGGCCG '
+               'bc_diffs=0\n', 'TACGTAGGGT\n', '+\n', '=1?AADBDFD\n']
+        self.assertEqual(fr, efr)
+        self.assertEqual(qr, eqr)
 
 if __name__ == '__main__':
     main()
