@@ -28,6 +28,7 @@ before_script:
   - qiita pet webserver start &
 script:
   - sleep 10 # give enough time to the webserver to start
+  - configure_target_gene --env-script "source activate qiita_env" --server-cert $QIITA_SERVER_CERT
   - nosetests --with-doctest --with-coverage
   - flake8 qp_target_gene setup.py scripts
 addons:
