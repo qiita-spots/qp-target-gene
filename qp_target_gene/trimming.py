@@ -40,6 +40,10 @@ def generate_trimming(filepaths, out_dir, parameters):
     for f in filepaths:
         with open(ffp, 'w') as ffh, open(qfp, 'w') as qfh, File(f) as fh:
             for samp, idx, seq, qual, bc_ori, bc_cor, bc_err in fetch(fh):
+                # only one of these comparisons should suffice but better
+                # safe than sorry
+                if len(seq) < length or len(qual) < length:
+                    continue
                 seq_id = id_fmt % {b'sample': samp, b'idx': idx,
                                    b'bc_ori': bc_ori, b'bc_cor': bc_cor,
                                    b'bc_diff': bc_err}

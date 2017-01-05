@@ -43,8 +43,8 @@ class TrimmingTest(PluginTestCase):
 
         # inserting new prep template
         prep_info_dict = {
-            'SKB7.640196': {'description': 'SKB7'},
-            'SKB8.640193': {'description': 'SKB8'}
+            'SKB7.640196': {'description_for_test': 'SKB7'},
+            'SKB8.640193': {'description_for_test': 'SKB8'}
         }
         data = {'prep_info': dumps(prep_info_dict),
                 # magic #1 = testing study
@@ -108,6 +108,35 @@ class TrimmingTest(PluginTestCase):
                'bc_diffs=0\n', 'TACGTAGGGT\n', '+\n', '=1?AADBDFD\n']
         self.assertEqual(fr, efr)
         self.assertEqual(qr, eqr)
+
+    def test_generate_trimming_rm_smaller(self):
+        # generating filepaths
+        fd, fp = mkstemp(suffix='_seqs.demux')
+        close(fd)
+        self._clean_up_files.append(fp)
+        # this file has all its seqs at 50bps, except 1
+        copyfile('support_files/filtered_5_seqs_50bps.demux', fp)
+
+        out_dir = mkdtemp()
+        self._clean_up_files.append(out_dir)
+        generate_trimming([fp], out_dir, {'length': 51})
+
+        pd = partial(join, out_dir)
+        with open(pd('seqs.fna')) as ffh, open(pd('seqs.fastq')) as qfh:
+            fr = ffh.readlines()
+            qr = qfh.readlines()
+
+        efr = ['>1.SKB7.640196_310 orig_bc=GAACTTAGGCCG new_bc=GAACTTAGGCCG '
+               'bc_diffs=0\n',
+               'TACGGAGGGTGCAAGCGTTATCCGGATTCACTGGGTTTAAAGGGTGCGTAA\n']
+        eqr = ['@1.SKB7.640196_310 orig_bc=GAACTTAGGCCG new_bc=GAACTTAGGCCG '
+               'bc_diffs=0\n',
+               'TACGGAGGGTGCAAGCGTTATCCGGATTCACTGGGTTTAAAGGGTGCGTAA\n',
+               '+\n',
+               'BBBFFFFFGDFHHJJJJIIJJIJJGIJJJIJJJJJHIIIIGIJIHIJJJHI\n']
+        self.assertEqual(fr, efr)
+        self.assertEqual(qr, eqr)
+
 
 if __name__ == '__main__':
     main()
