@@ -145,6 +145,7 @@ class PickOTUsTests(PluginTestCase):
         self.assertEqual(obs_ainfo, exp_ainfo)
         self.assertEqual(obs_msg, "")
 
+
 EXP_PARAMS = """pick_otus:otu_picking_method\tsortmerna
 pick_otus:sortmerna_max_pos\t10000
 pick_otus:similarity\t0.97

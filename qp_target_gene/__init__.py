@@ -23,8 +23,8 @@ plugin = QiitaPlugin(
 req_params = {'input_data': ('artifact', ['FASTA' 'FASTA_Sanger', 'SFF'])}
 opt_params = {
     'barcode_type': ['string', 'golay_12'],
-    'disable_bc_correction': ['bool', 'False'],
-    'disable_primers': ['bool', 'False'],
+    'disable_bc_correction': ['boolean', 'False'],
+    'disable_primers': ['boolean', 'False'],
     'max_ambig': ['integer', '6'],
     'max_barcode_errors': ['float', '1.5'],
     'max_homopolymer': ['integer', '6'],
@@ -36,8 +36,8 @@ opt_params = {
     'reverse_primer_mismatches': ['integer', '0'],
     'reverse_primers': [
         'choice:["disable", "truncate_only", "truncate_remove"]', 'disable'],
-    'trim_seq_length': ['bool', 'False'],
-    'truncate_ambi_bases': ['bool', 'False']}
+    'trim_seq_length': ['boolean', 'False'],
+    'truncate_ambi_bases': ['boolean', 'False']}
 outputs = {'demultiplexed': 'Demultiplexed'}
 dflt_param_set = {
     'Defaults with Golay 12 barcodes': {
@@ -71,9 +71,9 @@ opt_params = {
     'min_per_read_length_fraction': ['float', '0.75'],
     'phred_offset': ['choice:["auto", "33", "64"]', 'auto'],
     'phred_quality_threshold': ['integer', '3'],
-    'rev_comp': ['bool', 'False'],
-    'rev_comp_barcode': ['bool', 'False'],
-    'rev_comp_mapping_barcodes': ['bool', 'False'],
+    'rev_comp': ['boolean', 'False'],
+    'rev_comp_barcode': ['boolean', 'False'],
+    'rev_comp_mapping_barcodes': ['boolean', 'False'],
     'sequence_max_n': ['integer', '0']}
 dflt_param_set = {
     'Defaults': {
