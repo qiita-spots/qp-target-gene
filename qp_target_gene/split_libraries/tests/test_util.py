@@ -44,8 +44,8 @@ class UtilTests(PluginTestCase):
             'raw_forward_seqs': ['1_s_G1_L001_sequences.fastq.gz']}
         self.assertEqual(obs_fps, exp_fps)
         self.assertEqual(obs_at, "FASTQ")
-        self.assertEqual(basename(obs_map),
-                         '1_prep_1_qiime_19700101-000000.txt')
+        self.assertTrue(
+            basename(obs_map).startswith('1_prep_1_qiime_19700101'))
 
     def test_split_mapping_file_single(self):
         out_dir = mkdtemp()
