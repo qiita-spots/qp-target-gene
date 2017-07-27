@@ -17,7 +17,7 @@ plugin = QiitaPlugin(
     'QIIMEq2', '1.9.1', 'Quantitative Insights Into Microbial Ecology (QIIME)')
 
 # Define the Split libraries command
-req_params = {'input_data': ('artifact', ['FASTA' 'FASTA_Sanger', 'SFF'])}
+req_params = {'input_data': ('artifact', ['FASTA', 'FASTA_Sanger', 'SFF'])}
 opt_params = {
     'barcode_type': ['string', 'golay_12'],
     'disable_bc_correction': ['boolean', 'False'],
