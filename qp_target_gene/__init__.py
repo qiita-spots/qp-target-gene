@@ -14,10 +14,7 @@ from .trimming import trimming
 
 # Initialize the plugin
 plugin = QiitaPlugin(
-    'QIIME', '1.9.1', 'Quantitative Insights Into Microbial Ecology (QIIME) '
-                      'is an open-source bioinformatics pipeline for '
-                      'performing microbiome analysis from raw DNA '
-                      'sequencing data')
+    'QIIMEq2', '1.9.1', 'Quantitative Insights Into Microbial Ecology (QIIME)')
 
 # Define the Split libraries command
 req_params = {'input_data': ('artifact', ['FASTA' 'FASTA_Sanger', 'SFF'])}
@@ -138,17 +135,20 @@ plugin.register_command(sl_fastq_cmd)
 
 # Define the pick OTUs command
 req_params = {'input_data': ('artifact', ['Demultiplexed'])}
-opt_params = {'reference': ['reference', '1'],
-              'similarity': ['float', '0.97'],
-              'sortmerna_coverage': ['float', '0.97'],
-              'sortmerna_e_value': ['float', '1'],
-              'sortmerna_max_pos': ['integer', '10000'],
-              'threads': ['integer', '1']}
+opt_params = {
+    'reference-seq': ['string', '/databases/gg/13_8/rep_set/97_otus.fasta'],
+    'reference-tax': [
+        'string', '/databases/gg/13_8/taxonomy/97_otu_taxonomy.txt'],
+    'similarity': ['float', '0.97'], 'sortmerna_coverage': ['float', '0.97'],
+    'sortmerna_e_value': ['float', '1'],
+    'sortmerna_max_pos': ['integer', '10000'], 'threads': ['integer', '1']}
 outputs = {'OTU table': 'BIOM'}
 dflt_param_set = {
-    'Defaults': {'reference': 1, 'similarity': 0.97, 'sortmerna_e_value': 1,
-                 'sortmerna_max_pos': 10000, 'threads': 1,
-                 'sortmerna_coverage': 0.97}}
+    'Defaults': {
+        'reference-seq': '/databases/gg/13_8/rep_set/97_otus.fasta',
+        'reference-tax': '/databases/gg/13_8/taxonomy/97_otu_taxonomy.txt',
+        'similarity': 0.97, 'sortmerna_e_value': 1, 'sortmerna_max_pos': 10000,
+        'threads': 1, 'sortmerna_coverage': 0.97}}
 po_cmd = QiitaCommand(
     "Pick closed-reference OTUs",
     "OTU picking using a closed reference approach",
