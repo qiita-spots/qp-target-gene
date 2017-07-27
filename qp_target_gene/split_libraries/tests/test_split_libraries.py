@@ -207,7 +207,7 @@ class SplitLibrariesTests(PluginTestCase):
                       "truncate_ambi_bases": False,
                       "input_data": artifact}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['QIIME', '1.9.1', 'Split libraries']),
+                'command': dumps(['QIIMEq2', '1.9.1', 'Split libraries']),
                 'status': 'running',
                 'parameters': dumps(parameters)}
         job_id = self.qclient.post(

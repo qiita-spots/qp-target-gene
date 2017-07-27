@@ -62,7 +62,7 @@ class TrimmingTest(PluginTestCase):
 
         params = {'input_data': aid, 'length': 50}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['QIIME', '1.9.1', 'Trimming']),
+                'command': dumps(['QIIMEq2', '1.9.1', 'Trimming']),
                 'status': 'running', 'parameters': dumps(params)}
         jid = self.qclient.post('/apitest/processing_job/', data=data)['job']
 

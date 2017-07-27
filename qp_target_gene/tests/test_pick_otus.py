@@ -7,9 +7,9 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os.path import isdir, exists, join, dirname
+from os.path import isdir, exists, join
 from os import remove, close, mkdir
-from shutil import rmtree, copyfile
+from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
 from json import dumps
 from functools import partial
@@ -31,6 +31,12 @@ CLIENT_SECRET = ('J7FfQ7CQdOxuKhQAf1eoGgBAE81Ns8Gu3EKaWFm3IO2JKh'
 class PickOTUsTests(PluginTestCase):
     def setUp(self):
         self._clean_up_files = []
+        self.parameters = {
+            'reference-seq': '/databases/gg/13_8/rep_set/97_otus.fasta',
+            'reference-tax': '/databases/gg/13_8/taxonomy/97_otu_taxonomy.txt',
+            "sortmerna_e_value": 1, "sortmerna_max_pos": 10000,
+            "similarity": 0.97, "sortmerna_coverage": 0.97, "threads": 1,
+            "input_data": 2}
 
     def tearDown(self):
         for fp in self._clean_up_files:
@@ -41,16 +47,11 @@ class PickOTUsTests(PluginTestCase):
                     remove(fp)
 
     def test_write_parameters_file(self):
-        parameters = {
-            "reference": 1, "sortmerna_e_value": 1, "sortmerna_max_pos": 10000,
-            "similarity": 0.97, "sortmerna_coverage": 0.97, "threads": 1,
-            "input_data": 1}
-
         fd, fp = mkstemp()
         close(fd)
         self._clean_up_files.append(fp)
 
-        write_parameters_file(fp, parameters)
+        write_parameters_file(fp, self.parameters)
 
         with open(fp, 'U') as f:
             obs = f.read()
@@ -62,19 +63,15 @@ class PickOTUsTests(PluginTestCase):
         self._clean_up_files.append(output_dir)
         filepaths = {'preprocessed_fasta': ['/directory/seqs.fna'],
                      'preprocessed_demux': ['/directory/seqs.demux']}
-        parameters = {
-            "reference": 1, "sortmerna_e_value": 1, "sortmerna_max_pos": 10000,
-            "similarity": 0.97, "sortmerna_coverage": 0.97, "threads": 1,
-            "input_data": 1}
-        reference_fps = {'reference_seqs': '/directory/refseqs.fna',
-                         'reference_tax': '/directory/reftax.txt',
-                         'reference_tree': '/directory/reftree.tre'}
 
         obs, obs_dir = generate_pick_closed_reference_otus_cmd(
-            filepaths, output_dir, parameters, reference_fps)
+            filepaths, output_dir, self.parameters)
         exp = ("pick_closed_reference_otus.py -i /directory/seqs.fna "
-               "-r /directory/refseqs.fna -o {0}/cr_otus -p {0}/cr_params.txt "
-               "-t /directory/reftax.txt".format(output_dir))
+               "-r /databases/gg/13_8/rep_set/97_otus.fasta -o {0}/cr_otus "
+               "-p {0}/cr_params.txt -t "
+               "/databases/gg/13_8/taxonomy/97_otu_taxonomy.txt".format(
+                  output_dir))
+
         self.assertEqual(obs, exp)
         self.assertEqual(obs_dir, join(output_dir, 'cr_otus'))
 
@@ -102,38 +99,35 @@ class PickOTUsTests(PluginTestCase):
 
     def test_pick_closed_reference_otus(self):
         # Create a new job
-        parameters = {"reference": 1,
-                      "sortmerna_e_value": 1,
-                      "sortmerna_max_pos": 10000,
-                      "similarity": 0.97,
-                      "sortmerna_coverage": 0.97,
-                      "threads": 1,
-                      "input_data": 2}
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['QIIME', '1.9.1',
+                'command': dumps(['QIIMEq2', '1.9.1',
                                   'Pick closed-reference OTUs']),
                 'status': 'running',
-                'parameters': dumps(parameters)}
+                'parameters': dumps(self.parameters)}
         job_id = self.qclient.post(
             '/apitest/processing_job/', data=data)['job']
 
         # These filepaths do not exist in Qiita - create them
         fps = self.qclient.get('/qiita_db/artifacts/2/')['files']
         fasta_fp = fps['preprocessed_fasta'][0]
+        self.parameters['reference-seq'] = '/tmp/seq.fna'
+        self.parameters['reference-tax'] = '/tmp/tax.txt'
         with open(fasta_fp, 'w') as f:
             f.write(READS)
-        self._clean_up_files.append(fasta_fp)
-
-        ref_fps = self.qclient.get("/qiita_db/references/1/")['files']
-        path_builder = partial(join, dirname(__file__), 'test_data')
-        copyfile(path_builder('refseqs.fna'), ref_fps['reference_seqs'])
-        copyfile(path_builder('reftax.txt'), ref_fps['reference_tax'])
+        # self._clean_up_files.append(fasta_fp)
+        with open(self.parameters['reference-seq'], 'w') as f:
+            f.write(REF_SEQ)
+        # self._clean_up_files.append(self.parameters['reference-seq'])
+        with open(self.parameters['reference-tax'], 'w') as f:
+            f.write(REF_TAX)
+        # self._clean_up_files.append(self.parameters['reference-tax'])
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
 
         obs_success, obs_ainfo, obs_msg = pick_closed_reference_otus(
-            self.qclient, job_id, parameters, out_dir)
+            self.qclient, job_id, self.parameters, out_dir)
+        self.assertEqual(obs_msg, "")
         self.assertTrue(obs_success)
         path_builder = partial(join, out_dir, 'cr_otus')
         log_fp = glob(path_builder("log_*.txt"))[0]
@@ -143,7 +137,6 @@ class PickOTUsTests(PluginTestCase):
                (log_fp, "log")]
         exp_ainfo = [ArtifactInfo('OTU table', 'BIOM', fps)]
         self.assertEqual(obs_ainfo, exp_ainfo)
-        self.assertEqual(obs_msg, "")
 
 
 EXP_PARAMS = """pick_otus:otu_picking_method\tsortmerna
@@ -184,6 +177,29 @@ CCCGGGCTTAACCTGGGAACTGCATTGGTGCCTGCAAGGCTTGAGTGTGTCAGAGGGAGGTGGAATTCCGCGT
 TACGAAGGGGACTAGCGTTGTTCGGAATCACTGGGCGTAAAGCGCACGTAGGCGGATATGTCAGTCAGGGGTGAAATC\
 CCGGGGCTCAACCTCGGAACTGCCTTTGATACAGCGTCTCTTGAGTCCGATAGAGGCGGGTGGCATTCCTAGT
 """
+
+
+REF_TAX = """367523\tk__Bacteria; p__Bacteroidetes; c__Flavobacteriia; \
+o__; f__; g__; s__
+187144\tk__Bacteria; p__Firmicutes; c__Clostridia; o__; f__; g__; s__
+836974\tk__Bacteria; p__Cyanobacteria; c__Chloroplast; o__; f__; g__; s__
+310669\tk__Bacteria; p__Firmicutes; c__Clostridia; o__; f__; g__; s__"""
+
+
+REF_SEQ = """>367523
+TACGTAGGTGGCAAGCGTTGTCCGGAATTATTGGGCGTAAAGCGCGCGCAGGCGGTCCTTTAAGTCTGATGTGAAAGC\
+CCACGGCTTAACCGTGGAGGGTCATTGGAAACTGGAGGACTTGAGTACAGAAGAGGAGAGAGGAATTCCACGT
+>187144
+TACGTAGGTGGCAAGCGTTGTCCGGATTTATTGGGTTTAAAGGGTGCGTAGGCGGTTGTATAAGTCAGTGCTGAAATA\
+TCCCGGCTTAACCGGGAGGGTGGCATTGATACTGCGGGGCTTGAGAACGGGTGAGGTAGGCGGAATTGACGGT
+>836974
+TACAGAGGGTGCAAGCGTTAATCGGAATTACTGGGCTTAAAGCGTGCGTAGTCGGTTATTCAAGTCGGGGGTGAAAGC\
+CCCGGGCTCAACCTGGGAATTGCATTCGATACTGTTTAGCTAGAGTTCGGCAGAGGGAAGTGGAATTTCCGGT
+>310669
+TACGAAGGGGACTAGCGTTGTTCGGAATCACTGGGCGTAAAGCGCACGTAGGCGGATATGTCAGTCAGGGGTGAAATC\
+CCGGGGCTCAACCTCGGAACTGCCTTTGATACAGCGTCTCTTGAGTCCGATAGAGGCGGGTGGCATTCCTAGT
+"""
+
 
 if __name__ == '__main__':
     main()

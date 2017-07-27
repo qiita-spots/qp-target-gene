@@ -34,8 +34,7 @@ def write_parameters_file(fp, parameters):
             f.write("pick_otus:%s\t%s\n" % (p, parameters[p]))
 
 
-def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
-                                            reference_fps):
+def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters):
     """Generates the pick_closed_reference_otus.py command
 
     Parameters
@@ -46,8 +45,6 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
         The job output directory
     parameters : dict
         The command's parameters, keyed by parameter name
-    reference_fps : list of (str, str)
-        The reference filepaths and their types
 
     Returns
     -------
@@ -61,15 +58,13 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
     output_dir = join(out_dir, 'cr_otus')
     param_fp = join(out_dir, 'cr_params.txt')
 
+    reference_fp = parameters.pop('reference-seq')
+    taxonomy_fp = parameters.pop('reference-tax')
+
     write_parameters_file(param_fp, parameters)
 
-    reference_fp = reference_fps['reference_seqs']
-    taxonomy_fp = reference_fps.get('reference_tax', None)
-
-    params_str = "-t %s" % taxonomy_fp if taxonomy_fp else ""
-
-    cmd = str("pick_closed_reference_otus.py -i %s -r %s -o %s -p %s %s"
-              % (seqs_fp, reference_fp, output_dir, param_fp, params_str))
+    cmd = str("pick_closed_reference_otus.py -i %s -r %s -o %s -p %s -t %s"
+              % (seqs_fp, reference_fp, output_dir, param_fp, taxonomy_fp))
     return cmd, output_dir
 
 
@@ -142,13 +137,9 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
     a_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
     fps = a_info['files']
 
-    reference_id = parameters['reference']
-    ref_info = qclient.get("/qiita_db/references/%s/" % reference_id)
-    reference_fps = ref_info['files']
-
     qclient.update_job_step(job_id, "Step 2 of 4: Generating command")
     command, pick_out = generate_pick_closed_reference_otus_cmd(
-        fps, out_dir, parameters, reference_fps)
+        fps, out_dir, parameters)
 
     qclient.update_job_step(job_id, "Step 3 of 4: Executing OTU picking")
     std_out, std_err, return_value = system_call(command)
