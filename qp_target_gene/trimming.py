@@ -30,7 +30,7 @@ def generate_trimming(filepaths, out_dir, parameters):
     parameters : dict
         The command's parameters, keyed by parameter name
     """
-    length = parameters['length']
+    length = int(parameters['length'])
 
     id_fmt = (b"%(sample)s_%(idx)d orig_bc=%(bc_ori)s new_bc=%(bc_cor)s "
               b"bc_diffs=%(bc_diff)d")
