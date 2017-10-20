@@ -17,6 +17,8 @@ install:
   - source activate qiita
   - pip install sphinx sphinx-bootstrap-theme coveralls ipython[all]==2.4.1
   - pip install https://github.com/biocore/qiita/archive/master.zip --process-dependency-links
+  - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
+  - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
   - qiita-env make --no-load-ontologies
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/server.crt
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
