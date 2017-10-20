@@ -118,36 +118,38 @@ def generate_per_sample_fastq_command(forward_seqs, reverse_seqs, barcode_fps,
                          % (', '.join(basename(b) for b in barcode_fps)))
     sn_by_rp = get_sample_names_by_run_prefix(mapping_file)
     samples = []
+    errors = []
     for fname in forward_seqs:
-        f = basename(fname)
-        if re.match("^[0-9]+\_.*", f):
-            # getting just the main filename
-            f = basename(f).split('_', 1)[1]
-        # removing extentions: fastq or fastq.gz
-        if 'fastq' in f.lower().rsplit('.', 2):
-            f = f[:f.lower().rindex('.fastq')]
-        # this try/except block is simply to retrieve all possible errors
-        # and display them in the next if block
-        try:
-            samples.append(sn_by_rp[f])
-            del sn_by_rp[f]
-        except KeyError:
-            # if we get to this point it's possible that we removed
-            # unnecessarily the prefix number of the sample names so let's
-            # try again without that step
-            f = basename(fname)
-            if 'fastq' in f.lower().rsplit('.', 2):
-                f = f[:f.lower().rindex('.fastq')]
-            try:
-                samples.append(sn_by_rp[f])
-                del sn_by_rp[f]
-            except KeyError:
-                pass
+        fn = basename(fname)
 
-    if sn_by_rp:
-        raise ValueError(
-            'Some run_prefix values do not match your sample names: %s'
-            % ', '.join(sn_by_rp.keys()))
+        # removing extentions: fastq or fastq.gz
+        if 'fastq' in fn.lower().rsplit('.', 2):
+            f = fn[:fn.lower().rindex('.fastq')]
+        else:
+            f = fn
+        m = [v for v in sn_by_rp if f.startswith(v)]
+
+        # removing study_id, in case it's present
+        if re.match("^[0-9]+\_.*", f):
+            f = basename(fn).split('_', 1)[1]
+        mi = [v for v in sn_by_rp if f.startswith(v)]
+
+        # the matches is the largest between m/mi, if they are the same size
+        # we are gonna use m
+        matches = m if len(m) > len(mi) else mi
+
+        if matches:
+            len_matches = len(matches)
+            if len_matches != 1:
+                errors.append('%s has %s matches.' % (f, len_matches))
+            for m in matches:
+                samples.append(sn_by_rp[m])
+                del sn_by_rp[m]
+        else:
+            errors.append('%s has NO matches' % f)
+
+    if errors:
+        raise ValueError('Errors found:\n%s' % '\n'.join(errors))
 
     cmd = str("split_libraries_fastq.py --store_demultiplexed_fastq "
               "-i %s --sample_ids %s -o %s %s"

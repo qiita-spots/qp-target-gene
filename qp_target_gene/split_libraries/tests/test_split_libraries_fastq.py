@@ -69,8 +69,11 @@ class SplitLibrariesFastqTests(PluginTestCase):
             f.write(MAPPING_FILE_2)
         self._clean_up_files.append(fp)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as error:
             get_sample_names_by_run_prefix(fp)
+        self.assertEqual(
+            str(error.exception), 'You have run_prefix values with multiple '
+            'samples: s1 has 2 samples (SKB8.640193, SKD8.640184)')
 
     def test_generate_per_sample_fastq_command(self):
         fd, fp = mkstemp()
@@ -107,10 +110,11 @@ class SplitLibrariesFastqTests(PluginTestCase):
         with open(fp, 'w') as f:
             f.write(MAPPING_FILE_3)
         self._clean_up_files.append(fp)
-        forward_seqs = ["100_s1.fastq.gz", "100_s2.fastq.gz",
-                        "100_s3.fastq.gz"]
-        reverse_seqs = ["100_s1_rev.fastq.gz", "100_s2_rev.fastq.gz",
-                        "100_s3_rev.fastq.gz"]
+        forward_seqs = ["100_s1_extra1.fastq.gz", "100_s2_extra2.fastq.gz",
+                        "100_s3_extra3.fastq.gz"]
+        reverse_seqs = ["100_s1_extra1_rev.fastq.gz",
+                        "100_s2_extra2_rev.fastq.gz",
+                        "100_s3_extra3_rev.fastq.gz"]
         barcode_fps = []
         mapping_file = fp
         output_dir = "/output/dir"
@@ -123,7 +127,8 @@ class SplitLibrariesFastqTests(PluginTestCase):
             forward_seqs, reverse_seqs, barcode_fps,
             mapping_file, output_dir, params_str)
         exp = ("split_libraries_fastq.py --store_demultiplexed_fastq -i "
-               "100_s1.fastq.gz,100_s2.fastq.gz,100_s3.fastq.gz --sample_ids "
+               "100_s1_extra1.fastq.gz,100_s2_extra2.fastq.gz,"
+               "100_s3_extra3.fastq.gz --sample_ids "
                "SKB8.640193,SKD8.640184,SKB7.640196 -o /output/dir "
                "--max_bad_run_length 3 --min_per_read_length_fraction 0.75 "
                "--sequence_max_n 0 --phred_quality_threshold 3 "
@@ -178,12 +183,15 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "--sequence_max_n 0 --phred_quality_threshold 3 "
             "--barcode_type golay_12 --max_barcode_errors 1.5 "
             "--rev_comp_mapping_barcodes")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as error:
             generate_per_sample_fastq_command(
                 forward_seqs, reverse_seqs, barcode_fps,
                 mapping_file, output_dir, params_str)
+        self.assertEqual(
+            str(error.exception), 'per_sample_FASTQ can not have barcodes: '
+            's1_barcodes.fastq.gz, s2_barcodes.fastq.gz, s3_barcodes.fastq.gz')
 
-    def test_generate_per_sample_fastq_command_error_prefixes(self):
+    def test_generate_per_sample_fastq_command_error_nomatches(self):
         fd, fp = mkstemp()
         close(fd)
         with open(fp, 'w') as f:
@@ -200,10 +208,38 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "--sequence_max_n 0 --phred_quality_threshold 3 "
             "--barcode_type golay_12 --max_barcode_errors 1.5 "
             "--rev_comp_mapping_barcodes")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as error:
             generate_per_sample_fastq_command(
                 forward_seqs, reverse_seqs, barcode_fps,
                 mapping_file, output_dir, params_str)
+        self.assertEqual(
+            str(error.exception), 'Errors found:\nsX has NO matches')
+
+    def test_generate_per_sample_fastq_command_error_multiple_hits(self):
+        fd, fp = mkstemp()
+        close(fd)
+        with open(fp, 'w') as f:
+            f.write(MAPPING_FILE_4)
+        self._clean_up_files.append(fp)
+        forward_seqs = ["s11_file.fastq.gz", "s11_file.fastq.gz",
+                        "s111_file.fastq.gz"]
+        reverse_seqs = ["s1_file_rev.fastq.gz", "s11_file_rev.fastq.gz",
+                        "s111_file_rev.fastq.gz"]
+        barcode_fps = []
+        mapping_file = fp
+        output_dir = "/output/dir"
+        params_str = (
+            "--max_bad_run_length 3 --min_per_read_length_fraction 0.75 "
+            "--sequence_max_n 0 --phred_quality_threshold 3 "
+            "--barcode_type golay_12 --max_barcode_errors 1.5 "
+            "--rev_comp_mapping_barcodes")
+        with self.assertRaises(ValueError) as error:
+            generate_per_sample_fastq_command(
+                forward_seqs, reverse_seqs, barcode_fps,
+                mapping_file, output_dir, params_str)
+        self.assertEqual(
+            str(error.exception), 'Errors found:\ns11_file has 2 matches.\n'
+            's11_file has NO matches')
 
     def test_generate_split_libraries_fastq_cmd_per_sample_FASTQ(self):
         fps = {
@@ -291,9 +327,12 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
             "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as error:
             generate_split_libraries_fastq_cmd(
                 fps, mapping_file, atype, out_dir, parameters)
+        self.assertEqual(
+            str(error.exception), 'The number of barcode files and the number '
+            'of sequence files should match: 2 != 3')
 
     def test_split_libraries_fastq(self):
         # Create a new job
@@ -370,6 +409,16 @@ MAPPING_FILE_3 = (
     "SKB8.640193\tILLUMINA\tA\tA\tA\tANL\tA\t100_s1\tIllumina MiSeq\tdesc2\n"
     "SKD8.640184\tILLUMINA\tA\tA\tA\tANL\tA\t100_s2\tIllumina MiSeq\tdesc3\n"
 )
+
+MAPPING_FILE_4 = (
+    "#SampleID\tplatform\tbarcode\texperiment_design_description\t"
+    "library_construction_protocol\tcenter_name\tprimer\trun_prefix\t"
+    "instrument_model\tDescription\n"
+    "SKB7.640196\tILLUMINA\tA\tA\tA\tANL\tA\ts1\tIllumina MiSeq\tdesc1\n"
+    "SKB8.640193\tILLUMINA\tA\tA\tA\tANL\tA\ts11\tIllumina MiSeq\tdesc2\n"
+    "SKD8.640184\tILLUMINA\tA\tA\tA\tANL\tA\ts111\tIllumina MiSeq\tdesc3\n"
+)
+
 
 READS = """@M00176:18:000000000-A0DK4:1:1:15579:1518 1:N:0:0
 GACAGAGGGTGCAAACGTTGCTCGGAATCACTGGGCGTAAAGGGCGTGTAGGCGGGAAGGATAGTCAGATGTGAAATCCCTGGGCTCAACCCAGGAACTGCATTTGAAACTCCCTGTCTTGAGTGTCGGAGAGGGTAGCGGTATTCCTGGT
