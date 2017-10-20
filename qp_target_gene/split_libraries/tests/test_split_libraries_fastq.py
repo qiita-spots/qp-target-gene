@@ -69,11 +69,10 @@ class SplitLibrariesFastqTests(PluginTestCase):
             f.write(MAPPING_FILE_2)
         self._clean_up_files.append(fp)
 
-        with self.assertRaises(ValueError) as error:
+        with self.assertRaisesRegexp(ValueError, 'You have run_prefix values '
+                                     'with multiple samples: s1 has 2 samples '
+                                     '\(SKB8.640193, SKD8.640184\)'):
             get_sample_names_by_run_prefix(fp)
-        self.assertEqual(
-            str(error.exception), 'You have run_prefix values with multiple '
-            'samples: s1 has 2 samples (SKB8.640193, SKD8.640184)')
 
     def test_generate_per_sample_fastq_command(self):
         fd, fp = mkstemp()
@@ -183,13 +182,13 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "--sequence_max_n 0 --phred_quality_threshold 3 "
             "--barcode_type golay_12 --max_barcode_errors 1.5 "
             "--rev_comp_mapping_barcodes")
-        with self.assertRaises(ValueError) as error:
+        with self.assertRaisesRegexp(ValueError, 'per_sample_FASTQ can not '
+                                     'have barcodes: s1_barcodes.fastq.gz, '
+                                     's2_barcodes.fastq.gz, '
+                                     's3_barcodes.fastq.gz'):
             generate_per_sample_fastq_command(
                 forward_seqs, reverse_seqs, barcode_fps,
                 mapping_file, output_dir, params_str)
-        self.assertEqual(
-            str(error.exception), 'per_sample_FASTQ can not have barcodes: '
-            's1_barcodes.fastq.gz, s2_barcodes.fastq.gz, s3_barcodes.fastq.gz')
 
     def test_generate_per_sample_fastq_command_error_nomatches(self):
         fd, fp = mkstemp()
@@ -208,12 +207,11 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "--sequence_max_n 0 --phred_quality_threshold 3 "
             "--barcode_type golay_12 --max_barcode_errors 1.5 "
             "--rev_comp_mapping_barcodes")
-        with self.assertRaises(ValueError) as error:
+        with self.assertRaisesRegexp(ValueError, 'Errors found:\nsX has NO '
+                                     'matches'):
             generate_per_sample_fastq_command(
                 forward_seqs, reverse_seqs, barcode_fps,
                 mapping_file, output_dir, params_str)
-        self.assertEqual(
-            str(error.exception), 'Errors found:\nsX has NO matches')
 
     def test_generate_per_sample_fastq_command_error_multiple_hits(self):
         fd, fp = mkstemp()
@@ -233,13 +231,11 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "--sequence_max_n 0 --phred_quality_threshold 3 "
             "--barcode_type golay_12 --max_barcode_errors 1.5 "
             "--rev_comp_mapping_barcodes")
-        with self.assertRaises(ValueError) as error:
+        with self.assertRaisesRegexp(ValueError, 'Errors found:\ns11_file has '
+                                     '2 matches.\ns11_file has NO matches'):
             generate_per_sample_fastq_command(
                 forward_seqs, reverse_seqs, barcode_fps,
                 mapping_file, output_dir, params_str)
-        self.assertEqual(
-            str(error.exception), 'Errors found:\ns11_file has 2 matches.\n'
-            's11_file has NO matches')
 
     def test_generate_split_libraries_fastq_cmd_per_sample_FASTQ(self):
         fps = {
@@ -327,12 +323,11 @@ class SplitLibrariesFastqTests(PluginTestCase):
             "rev_comp_mapping_barcodes": True, "rev_comp": False,
             "phred_quality_threshold": 3, "barcode_type": "golay_12",
             "max_barcode_errors": 1.5, "input_data": 1, "phred_offset": "auto"}
-        with self.assertRaises(ValueError) as error:
+        with self.assertRaisesRegexp(ValueError, 'The number of barcode files '
+                                     'and the number of sequence files should '
+                                     'match: 2 != 3'):
             generate_split_libraries_fastq_cmd(
                 fps, mapping_file, atype, out_dir, parameters)
-        self.assertEqual(
-            str(error.exception), 'The number of barcode files and the number '
-            'of sequence files should match: 2 != 3')
 
     def test_split_libraries_fastq(self):
         # Create a new job
