@@ -36,10 +36,13 @@ BEGIN
             -- Silva
             ref_seqs := '/projects/qiita_data/reference/silva_119_Silva_119_rep_set97.fna';
             ref_taxa := '/projects/qiita_test_data/reference/silva_119_taxonomy_97_7_levels.txt';
-        ELSE
+        ELSIF a_info.command_parameters->>'reference' = '3' THEN
             -- UNITE
             ref_seqs := '/projects/qiita_test_data/reference/unite_7_sh_refs_qiime_ver7_97_s_02.03.2015.fasta';
             ref_taxa := '/projects/qiita_test_data/reference/unite_7_sh_taxonomy_qiime_ver7_97_s_02.03.2015.txt';
+        ELSE
+            -- Unknown reference
+            RAISE NOTICE 'Artifact with ID % contains an unknown reference id: %', a_info.artifact_id, a_info.command_parameters->>'reference';
         END IF;
 
         parameters := ('{"input_data": "' || (a_info.command_parameters->>'input_data')::varchar || '", '
