@@ -13,6 +13,10 @@ DECLARE
     ref_taxa        VARCHAR;
     pj_id           UUID;
     input_data      VARCHAR;
+    old_cmd_id      BIGINT;
+    new_cmd_id      BIGINT;
+    cmd_array       VARCHAR[] := array['Split libraries', 'Split libraries FASTQ', 'Trimming'];
+    cmd_it          VARCHAR;
 BEGIN
     SELECT command_id INTO potu_cmd_id
         FROM qiita.software_command sc
@@ -66,6 +70,32 @@ BEGIN
         UPDATE qiita.artifact
             SET command_parameters = parameters, command_id = new_potu_cmd_id
             WHERE artifact_id = a_info.artifact_id;
+
+    END LOOP;
+
+    -- Upgrade all the artifacts to the new command
+    FOREACH cmd_it IN ARRAY cmd_array
+    LOOP
+        SELECT command_id INTO old_cmd_id
+            FROM qiita.software_command sc
+                JOIN qiita.software s USING (software_id)
+            WHERE s.name = 'QIIME' AND s.version = '1.9.1' AND sc.name = cmd_it;
+
+        SELECT command_id INTO new_cmd_id
+            FROM qiita.software_command sc
+                JOIN qiita.software s USING (software_id)
+            WHERE s.name = 'QIIMEq2' AND s.version = '1.9.1' AND sc.name = cmd_it;
+
+        UPDATE qiita.processing_job
+            SET command_id = new_cmd_id
+            WHERE processing_job_id IN (SELECT processing_job_id
+                                            FROM qiita.artifact_output_processing_job
+                                                JOIN qiita.artifact USING (artifact_id)
+                                            WHERE command_id = old_cmd_id);
+
+        UPDATE qiita.artifact
+            SET command_id = new_cmd_id
+            WHERE command_id = old_cmd_id;
 
     END LOOP;
 END $do$

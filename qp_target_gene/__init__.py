@@ -161,9 +161,9 @@ req_params = {'input_data': ('artifact', ['Demultiplexed'])}
 opt_params = {'length': ['integer', '100']}
 outputs = {'Trimmed Demultiplexed': 'Demultiplexed'}
 dflt_param_set = {
-    'Trimming 90': {'length': 90},
-    'Trimming 100': {'length': 100},
-    'Trimming 150': {'length': 150}
+    '90 base pairs': {'length': 90},
+    '100 base pairs': {'length': 100},
+    '150 base pairs': {'length': 150}
 }
 trim_cmd = QiitaCommand(
     "Trimming", "Trimming sequences to the same length",
