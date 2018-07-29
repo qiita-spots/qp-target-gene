@@ -1,5 +1,6 @@
 language: python
-sudo: false
+sudo: required
+group: deprecated-2017Q4
 env:
   - PYTHON_VERSION=2.7
 before_install:
@@ -15,12 +16,13 @@ install:
     pyzmq networkx pyparsing natsort mock future libgfortran
     'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
   - source activate qiita
-  - pip install sphinx sphinx-bootstrap-theme coveralls ipython[all]==2.4.1
+  - pip install sphinx sphinx-bootstrap-theme coveralls
   - pip install https://github.com/biocore/qiita/archive/dev.zip --process-dependency-links
   - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
   - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/server.crt
   - qiita-env make --no-load-ontologies
+  - source deactivate  
   - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
   - travis_retry pip install . --process-dependency-links
 before_script:
