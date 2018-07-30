@@ -265,8 +265,8 @@ def split_libraries(qclient, job_id, parameters, out_dir):
                   output_dir))
         std_out, std_err, return_value = system_call(cmd)
         if return_value != 0:
-            raise RuntimeError(
-                "Error converting the fasta/qual files to fastq")
+            raise RuntimeError("Error converting the fasta/qual files to "
+                               "fastq. %d: %s" % (return_value, std_err))
     qclient.update_job_step(
         job_id, "Step 4 of 4: Merging results (generating demux file)")
 
