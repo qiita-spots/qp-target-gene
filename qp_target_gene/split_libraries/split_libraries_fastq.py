@@ -130,7 +130,7 @@ def generate_per_sample_fastq_command(forward_seqs, reverse_seqs, barcode_fps,
         m = [v for v in sn_by_rp if f.startswith(v)]
 
         # removing study_id, in case it's present
-        if re.match("^[0-9]+\_.*", f):
+        if re.match(r"^[0-9]+\_.*", f):
             f = basename(fn).split('_', 1)[1]
         mi = [v for v in sn_by_rp if f.startswith(v)]
 
