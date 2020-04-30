@@ -44,6 +44,7 @@ setup(name='qp-target-gene',
       scripts=glob('scripts/*'),
       extras_require={'test': ["nose >= 0.10.1", "pep8"]},
       install_requires=['click >= 3.3', 'future', 'requests', 'pandas >= 0.15',
+                        'biom-format <= 2.1.7',
                         'h5py >= 2.3.1', 'qiime >= 1.9.0, < 1.10.0',
                         'qiita-files @ https://github.com/'
                         'qiita-spots/qiita-files/archive/master.zip',
