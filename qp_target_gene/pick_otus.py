@@ -15,6 +15,7 @@ from zipfile import is_zipfile
 from qiita_client import ArtifactInfo
 from qiita_client.util import system_call
 
+
 def write_parameters_file(fp, parameters):
     """Write the QIIME parameters file
 
@@ -33,8 +34,8 @@ def write_parameters_file(fp, parameters):
             f.write("pick_otus:%s\t%s\n" % (p, parameters[p]))
 
 
-def generate_pick_closed_reference_otus_cmd(
-    filepaths, out_dir, parameters, test=False):
+def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
+                                            test=False):
     """Generates the pick_closed_reference_otus.py command
 
     Parameters
@@ -60,7 +61,11 @@ def generate_pick_closed_reference_otus_cmd(
     if not test and is_zipfile(seqs_fp):
         seqs_fp_fna = join(out_dir, 'seqs.fna')
         cmd_ungz = 'gunzip -c %s > %s' % (seqs_fp, seqs_fp_fna)
-        seqs_fp = seqs_fp_fna
+        std_out, std_err, return_value = system_call(cmd_ungz)
+        if return_value != 0:
+            error = ("Std out: %s\nStd err: %s\n\nCommand run was:\n%s"
+                     % (std_out, std_err, cmd_ungz))
+            raise RuntimeError(error)
 
     output_dir = join(out_dir, 'cr_otus')
     param_fp = join(out_dir, 'cr_params.txt')
