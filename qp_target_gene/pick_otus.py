@@ -58,15 +58,6 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
     # It should be only a single preprocessed fasta file
     seqs_fp = filepaths['preprocessed_fasta'][0]
 
-    if not test and is_zipfile(seqs_fp):
-        seqs_fp_fna = join(out_dir, 'seqs.fna')
-        cmd_ungz = 'gunzip -c %s > %s' % (seqs_fp, seqs_fp_fna)
-        std_out, std_err, return_value = system_call(cmd_ungz)
-        if return_value != 0:
-            error = ("Std out: %s\nStd err: %s\n\nCommand run was:\n%s"
-                     % (std_out, std_err, cmd_ungz))
-            raise RuntimeError(error)
-
     output_dir = join(out_dir, 'cr_otus')
     param_fp = join(out_dir, 'cr_params.txt')
 
@@ -75,8 +66,14 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
 
     write_parameters_file(param_fp, parameters)
 
-    cmd = str("pick_closed_reference_otus.py -i %s -r %s -o %s -p %s -t %s"
-              % (seqs_fp, reference_fp, output_dir, param_fp, taxonomy_fp))
+    cmd_ungz = ''
+    if not test and is_zipfile(seqs_fp):
+        seqs_fp_fna = join(out_dir, 'seqs.fna')
+        cmd_ungz = 'gunzip -c %s > %s; ' % (seqs_fp, seqs_fp_fna)
+        seqs_fp = seqs_fp_fna
+
+    cmd = "%spick_closed_reference_otus.py -i %s -r %s -o %s -p %s -t %s" % (
+        cmd_ungz, seqs_fp, reference_fp, output_dir, param_fp, taxonomy_fp)
     return cmd, output_dir
 
 
