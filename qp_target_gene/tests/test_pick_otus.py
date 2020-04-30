@@ -65,7 +65,7 @@ class PickOTUsTests(PluginTestCase):
                      'preprocessed_demux': ['/directory/seqs.demux']}
 
         obs, obs_dir = generate_pick_closed_reference_otus_cmd(
-            filepaths, output_dir, self.parameters)
+            filepaths, output_dir, self.parameters, True)
         exp = ("pick_closed_reference_otus.py -i /directory/seqs.fna "
                "-r /databases/gg/13_8/rep_set/97_otus.fasta -o {0}/cr_otus "
                "-p {0}/cr_params.txt -t "

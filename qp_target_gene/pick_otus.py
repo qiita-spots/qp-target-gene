@@ -10,11 +10,10 @@ from os.path import join, basename
 from functools import partial
 from glob import glob
 from tarfile import open as taropen
+from zipfile import is_zipfile
 
 from qiita_client import ArtifactInfo
-
-from qp_target_gene.util import system_call
-
+from qiita_client.util import system_call
 
 def write_parameters_file(fp, parameters):
     """Write the QIIME parameters file
@@ -34,7 +33,8 @@ def write_parameters_file(fp, parameters):
             f.write("pick_otus:%s\t%s\n" % (p, parameters[p]))
 
 
-def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters):
+def generate_pick_closed_reference_otus_cmd(
+    filepaths, out_dir, parameters, test=False):
     """Generates the pick_closed_reference_otus.py command
 
     Parameters
@@ -45,6 +45,8 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters):
         The job output directory
     parameters : dict
         The command's parameters, keyed by parameter name
+    test : boolean, optional
+        If True this is being called from a test so no gzip testing
 
     Returns
     -------
@@ -54,6 +56,11 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters):
     """
     # It should be only a single preprocessed fasta file
     seqs_fp = filepaths['preprocessed_fasta'][0]
+
+    if not test and is_zipfile(seqs_fp):
+        seqs_fp_fna = join(out_dir, 'seqs.fna')
+        cmd_ungz = 'gunzip -c %s > %s' % (seqs_fp, seqs_fp_fna)
+        seqs_fp = seqs_fp_fna
 
     output_dir = join(out_dir, 'cr_otus')
     param_fp = join(out_dir, 'cr_params.txt')
