@@ -71,7 +71,7 @@ class SplitLibrariesFastqTests(PluginTestCase):
 
         with self.assertRaisesRegexp(ValueError, 'You have run_prefix values '
                                      'with multiple samples: s1 has 2 samples '
-                                     '\(SKB8.640193, SKD8.640184\)'):
+                                     r'\(SKB8.640193, SKD8.640184\)'):
             get_sample_names_by_run_prefix(fp)
 
     def test_generate_per_sample_fastq_command(self):

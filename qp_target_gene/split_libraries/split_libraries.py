@@ -8,7 +8,7 @@
 
 from os.path import join, basename, splitext
 
-from qp_target_gene.util import system_call
+from qiita_client.util import system_call
 from .util import (get_artifact_information, split_mapping_file,
                    generate_demux_file, generate_artifact_info)
 

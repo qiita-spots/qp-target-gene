@@ -37,17 +37,18 @@ setup(name='qp-target-gene',
       description='Qiita Plugin: Target Gene',
       author="Qiita development team",
       author_email="qiita.help@gmail.com",
-      url='https://github.com/biocore/qiita',
+      url='https://github.com/qiita-spots/qp-target-gene',
       test_suite='nose.collector',
       packages=['qp_target_gene', 'qp_target_gene/split_libraries'],
       package_data={'qp_target_gene': ['support_files/config_file.cfg']},
       scripts=glob('scripts/*'),
       extras_require={'test': ["nose >= 0.10.1", "pep8"]},
       install_requires=['click >= 3.3', 'future', 'requests', 'pandas >= 0.15',
+                        'biom-format <= 2.1.7',
                         'h5py >= 2.3.1', 'qiime >= 1.9.0, < 1.10.0',
-                        'qiita-files'],
-      dependency_links=[
-          'https://github.com/qiita-spots/qiita-files/archive/master.zip#'
-          'egg=qiita-files-0.1.0-dev'],
+                        'qiita-files @ https://github.com/'
+                        'qiita-spots/qiita-files/archive/master.zip',
+                        'qiita_client @ https://github.com/qiita-spots/'
+                        'qiita_client/archive/master.zip'],
       classifiers=classifiers
       )

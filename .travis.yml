@@ -1,40 +1,52 @@
+dist: xenial
 language: python
-sudo: required
-group: deprecated-2017Q4
+sudo: false
 env:
-  - PYTHON_VERSION=2.7
+  - PYTHON_VERSION=3.6
 before_install:
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.3-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda3/bin:$PATH
-  # Update conda itself
   - conda update --yes conda
 install:
-  # At this moment, this plugin depends on qiita, so install everything in the same environment
-  - travis_retry conda create --yes -n qiita python=2.7 pip nose flake8
-    pyzmq networkx pyparsing natsort mock future libgfortran
-    'pandas>=0.18' 'scipy>0.13.0' 'numpy>=1.7' 'h5py>=2.3.1'
+  # installing Qiita in it's own environment python3.6
+  - travis_retry conda create -q --yes -n qiita python=3.6 pip libgfortran numpy nginx cython
   - source activate qiita
   - pip install sphinx sphinx-bootstrap-theme coveralls
-  - pip install https://github.com/biocore/qiita/archive/dev.zip --process-dependency-links
-  - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
+  - pip install https://github.com/biocore/qiita/archive/dev.zip --no-binary redbiom
+  # as we don't need redbiom we are going to use the default redis port
+  - sed 's/PORT = 7777/PORT = 6379/g' $HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/config_test.cfg > config_test.cfg
   - export QIITA_CONFIG_FP=${PWD}/config_test.cfg
-  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python2.7/site-packages/qiita_core/support_files/server.crt
+  # starting nginx
+  - mkdir /home/travis/miniconda3/envs/qiita/var/run/nginx/
+  - wget https://github.com/biocore/qiita/archive/dev.zip -O qiita-dev.zip
+  - unzip qiita-dev.zip
+  - nginx -c ${PWD}/qiita-dev/qiita_pet/nginx_example.conf
   - qiita-env make --no-load-ontologies
-  # plugin dependencies and installation
+  - source deactivate
+  # installing this plugin
+  - conda create --quiet --yes -n qp-target-gene python=2.7 pip numpy
+  - source activate qp-target-gene
   - conda install --yes -c bioconda -c biocore SortMeRNA==2.0
-  - pip install https://github.com/qiita-spots/qiita_client/archive/master.zip
-  - travis_retry pip install . --process-dependency-links
+  - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
+  - pip install -U pip
+  - pip install coveralls flake8
+  - travis_retry pip install .
+  - configure_target_gene --env-script "source activate qp-target-gene" --server-cert $QIITA_SERVER_CERT
 before_script:
-  - qiita pet webserver start &
-script:
+  - source activate qiita
+  - qiita plugins update
+  - supervisord -c ${PWD}/qiita-dev/qiita_pet/supervisor_example.conf
   - sleep 10 # give enough time to the webserver to start
-  - configure_target_gene --env-script "source activate qiita" --server-cert $QIITA_SERVER_CERT
+  - cat /tmp/supervisord.log
+script:
+  - source activate qp-target-gene
+  - start_target_gene "https://localhost:8383" register ignored
   - nosetests --with-doctest --with-coverage
   - flake8 qp_target_gene setup.py scripts
 addons:
-  postgresql: "9.3"
+  postgresql: "9.5"
 services:
   - redis-server
   - postgresql
