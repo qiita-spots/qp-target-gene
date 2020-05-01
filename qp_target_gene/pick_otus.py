@@ -69,7 +69,7 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
     cmd_ungz = ''
     if not test and is_zipfile(seqs_fp):
         seqs_fp_fna = join(out_dir, 'seqs.fna')
-        cmd_ungz = 'gunzip -c %s > %s; ' % (seqs_fp, seqs_fp_fna)
+        cmd_ungz = 'gunzip -c %s > %s && ' % (seqs_fp, seqs_fp_fna)
         seqs_fp = seqs_fp_fna
 
     cmd = "%spick_closed_reference_otus.py -i %s -r %s -o %s -p %s -t %s" % (
