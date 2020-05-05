@@ -69,9 +69,9 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
     cmd_ungz = ''
     if not test:
         try:
-            with gopen('README.rst', 'rb') as f:
+            with gopen(seqs_fp, 'rb') as f:
                 f.read(1)
-        except (OSError, IOError):
+        except OSError:
             seqs_fp_fna = join(out_dir, 'seqs.fna')
             cmd_ungz = 'pigz -c -p%s %s > %s && ' % (
                 seqs_fp, parameters['threads'], seqs_fp_fna)
