@@ -26,7 +26,7 @@ install:
   - qiita-env make --no-load-ontologies
   - source deactivate
   # installing this plugin
-  - conda create --quiet --yes -n qp-target-gene python=2.7 pip numpy
+  - conda create --quiet --yes -n qp-target-gene python=2.7 pip numpy pigz
   - source activate qp-target-gene
   - conda install --yes -c bioconda -c biocore SortMeRNA==2.0
   - export QIITA_SERVER_CERT=$HOME/miniconda3/envs/qiita/lib/python3.6/site-packages/qiita_core/support_files/server.crt
