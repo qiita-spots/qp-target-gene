@@ -18,8 +18,6 @@ sql = """UPDATE qiita.filepath SET (filepath, checksum, fp_size) = (%s, %s, %s)
          WHERE filepath_id = %s"""
 command = "pigz -p20 %s"
 
-a = [a for a in artifacts if a.id == 89520][0]
-
 for i, a in enumerate(artifacts):
     if (i+1) % 10:
         print("Processing artifact: %d/%d" % ((i+1), len_artifacts))
