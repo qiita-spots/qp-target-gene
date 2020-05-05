@@ -43,8 +43,8 @@ before_script:
 script:
   - source activate qp-target-gene
   - start_target_gene "https://localhost:8383" register ignored
-  - nosetests --with-doctest --with-coverage
-  - flake8 qp_target_gene setup.py scripts
+  - nosetests --with-doctest --with-coverage --cover-package=qp_target_gene
+  - flake8 qp_target_gene setup.py scripts qp_target_gene/support_files/patches/*.py
 addons:
   postgresql: "9.5"
 services:
