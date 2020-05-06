@@ -74,7 +74,7 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
         except (OSError, IOError):
             seqs_fp_fna = join(out_dir, 'seqs.fna')
             cmd_ungz = 'pigz -c -d -p%s %s > %s && ' % (
-                seqs_fp, parameters['threads'], seqs_fp_fna)
+                seqs_fp, str(parameters['threads']), seqs_fp_fna)
             seqs_fp = seqs_fp_fna
 
     cmd = "%spick_closed_reference_otus.py -i %s -r %s -o %s -p %s -t %s" % (
