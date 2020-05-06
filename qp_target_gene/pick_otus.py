@@ -158,8 +158,8 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(job_id, "Step 3 of 4: Executing OTU picking")
     std_out, std_err, return_value = system_call(command)
     if return_value != 0:
-        error_msg = ("Error running OTU picking:\nStd out: %s\nStd err: %s"
-                     % (std_out, std_err))
+        error_msg = ("Error running OTU picking:%s\nStd out: %s\nStd err: %s"
+                     % (command, std_out, std_err))
         return False, None, error_msg
 
     qclient.update_job_step(job_id,
