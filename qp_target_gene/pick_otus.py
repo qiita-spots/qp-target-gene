@@ -67,16 +67,21 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
     write_parameters_file(param_fp, parameters)
 
     cmd_ungz = ''
+    is_gz = False
     if not test:
         try:
             with gopen(seqs_fp, 'rb') as f:
                 f.read(1)
+            is_gz = True
+        except (OSError, IOError):
+            pass
+
+        if is_gz:
             seqs_fp_fna = join(out_dir, 'seqs.fna')
             cmd_ungz = 'pigz -c -d -p%s %s > %s && ' % (
                 str(parameters['threads']), seqs_fp, seqs_fp_fna)
             seqs_fp = seqs_fp_fna
-        except (OSError, IOError):
-            pass
+
 
     cmd = "%spick_closed_reference_otus.py -i %s -r %s -o %s -p %s -t %s" % (
         cmd_ungz, seqs_fp, reference_fp, output_dir, param_fp, taxonomy_fp)

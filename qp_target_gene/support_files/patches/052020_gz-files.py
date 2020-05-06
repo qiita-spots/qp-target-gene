@@ -30,7 +30,9 @@ for i, a in enumerate(artifacts):
         with TRN:
             pout, perr, rv = system_call(command % fp['fp'])
             if rv != 0:
-                raise ValueError("Erro: %s -- %s" % (pout, perr))
+                raise ValueError(
+                    "Error in artifact: %d, fid: %d %s -- %s" % (
+                        a.id, fp['fp_id'], pout, perr))
             new_fp = '%s.gz' % fp['fp']
             checksum = compute_checksum(new_fp)
             size = getsize(new_fp)
