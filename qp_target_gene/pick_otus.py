@@ -74,7 +74,7 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
         except (OSError, IOError):
             seqs_fp_fna = join(out_dir, 'seqs.fna')
             cmd_ungz = 'pigz -c -d -p%s %s > %s && ' % (
-                seqs_fp, str(parameters['threads']), seqs_fp_fna)
+                str(parameters['threads']), seqs_fp, seqs_fp_fna)
             seqs_fp = seqs_fp_fna
 
     cmd = "%spick_closed_reference_otus.py -i %s -r %s -o %s -p %s -t %s" % (
@@ -158,7 +158,7 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(job_id, "Step 3 of 4: Executing OTU picking")
     std_out, std_err, return_value = system_call(command)
     if return_value != 0:
-        error_msg = ("Error running OTU picking:%s\nStd out: %s\nStd err: %s"
+        error_msg = ("Error running OTU picking: %s\nStd out: %s\nStd err: %s"
                      % (command, std_out, std_err))
         return False, None, error_msg
 
