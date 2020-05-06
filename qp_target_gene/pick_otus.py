@@ -10,7 +10,7 @@ from os.path import join, basename
 from functools import partial
 from glob import glob
 from tarfile import open as taropen
-from zipfile import is_zipfile
+from gzip import open as gopen
 
 from qiita_client import ArtifactInfo
 from qiita_client.util import system_call
@@ -67,10 +67,20 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
     write_parameters_file(param_fp, parameters)
 
     cmd_ungz = ''
-    if not test and is_zipfile(seqs_fp):
-        seqs_fp_fna = join(out_dir, 'seqs.fna')
-        cmd_ungz = 'gunzip -c %s > %s && ' % (seqs_fp, seqs_fp_fna)
-        seqs_fp = seqs_fp_fna
+    is_gz = False
+    if not test:
+        try:
+            with gopen(seqs_fp, 'rb') as f:
+                f.read(1)
+            is_gz = True
+        except (OSError, IOError):
+            pass
+
+        if is_gz:
+            seqs_fp_fna = join(out_dir, 'seqs.fna')
+            cmd_ungz = 'pigz -c -d -p%s %s > %s && ' % (
+                str(parameters['threads']), seqs_fp, seqs_fp_fna)
+            seqs_fp = seqs_fp_fna
 
     cmd = "%spick_closed_reference_otus.py -i %s -r %s -o %s -p %s -t %s" % (
         cmd_ungz, seqs_fp, reference_fp, output_dir, param_fp, taxonomy_fp)
@@ -153,8 +163,8 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(job_id, "Step 3 of 4: Executing OTU picking")
     std_out, std_err, return_value = system_call(command)
     if return_value != 0:
-        error_msg = ("Error running OTU picking:\nStd out: %s\nStd err: %s"
-                     % (std_out, std_err))
+        error_msg = ("Error running OTU picking: %s\nStd out: %s\nStd err: %s"
+                     % (command, std_out, std_err))
         return False, None, error_msg
 
     qclient.update_job_step(job_id,
