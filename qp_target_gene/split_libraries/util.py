@@ -73,7 +73,7 @@ def get_artifact_information(qclient, artifact_id, out_dir):
 
     df = df[sort_columns]
 
-    qiime_map = f'{out_dir}/qiime-mapping-file.txt'
+    qiime_map = join(out_dir, 'qiime-mapping-file.txt')
     df.to_csv(qiime_map, sep='\t')
 
     return fps, qiime_map, artifact_type
