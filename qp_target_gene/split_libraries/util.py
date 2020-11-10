@@ -61,7 +61,6 @@ def get_artifact_information(qclient, artifact_id, out_dir):
     df.rename(columns=rename_cols, inplace=True)
     # by design the prep info file doesn't have a Description column so we can
     # fill without checking
-    index = df.index
     df['Description'] = 'XXQIITAXX'
 
     # sorting columns to be a valid "classic" QIIME1 mapping file
