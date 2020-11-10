@@ -35,7 +35,9 @@ class UtilTests(PluginTestCase):
                     remove(fp)
 
     def test_get_artifact_information(self):
-        obs_fps, obs_map, obs_at = get_artifact_information(self.qclient, 1)
+        out_dir = mkdtemp()
+        obs_fps, obs_map, obs_at = get_artifact_information(
+            self.qclient, 1, out_dir)
 
         for k in obs_fps:
             obs_fps[k] = [basename(v) for v in obs_fps[k]]
