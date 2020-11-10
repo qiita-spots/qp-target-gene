@@ -35,7 +35,9 @@ class UtilTests(PluginTestCase):
                     remove(fp)
 
     def test_get_artifact_information(self):
-        obs_fps, obs_map, obs_at = get_artifact_information(self.qclient, 1)
+        out_dir = mkdtemp()
+        obs_fps, obs_map, obs_at = get_artifact_information(
+            self.qclient, 1, out_dir)
 
         for k in obs_fps:
             obs_fps[k] = [basename(v) for v in obs_fps[k]]
@@ -44,8 +46,7 @@ class UtilTests(PluginTestCase):
             'raw_forward_seqs': ['1_s_G1_L001_sequences.fastq.gz']}
         self.assertEqual(obs_fps, exp_fps)
         self.assertEqual(obs_at, "FASTQ")
-        self.assertTrue(
-            basename(obs_map).startswith('1_prep_1_qiime_'))
+        self.assertEqual(basename(obs_map), 'qiime-mapping-file.txt')
 
     def test_split_mapping_file_single(self):
         out_dir = mkdtemp()

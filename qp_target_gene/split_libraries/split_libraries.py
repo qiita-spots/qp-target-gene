@@ -185,7 +185,7 @@ def split_libraries(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
     artifact_id = parameters['input_data']
     filepaths, mapping_file, atype = get_artifact_information(
-        qclient, artifact_id)
+        qclient, artifact_id, out_dir)
 
     # Step 2 generate the split libraries command
     qclient.update_job_step(job_id, "Step 2 of 4: preparing files")

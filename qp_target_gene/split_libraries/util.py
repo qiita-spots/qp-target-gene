@@ -16,7 +16,7 @@ from qiita_client import ArtifactInfo
 from qiita_files.demux import to_hdf5
 
 
-def get_artifact_information(qclient, artifact_id):
+def get_artifact_information(qclient, artifact_id, out_dir):
     """Retrieves the artifact information for running split libraries
 
     Parameters
@@ -25,6 +25,8 @@ def get_artifact_information(qclient, artifact_id):
         The Qiita server client
     artifact_id : str
         The artifact id
+    out_dir : str
+        The output directory
 
     Returns
     -------
@@ -41,7 +43,39 @@ def get_artifact_information(qclient, artifact_id):
     # Get the artifact metadata
     prep_info = qclient.get('/qiita_db/prep_template/%s/'
                             % artifact_info['prep_information'][0])
-    qiime_map = prep_info['qiime-map']
+
+    df = pd.read_csv(prep_info['prep-file'], sep='\t', dtype='str',
+                     na_values=[], keep_default_na=False)
+    df.set_index('sample_name', inplace=True)
+
+    rename_cols = {
+        'barcode': 'BarcodeSequence',
+        'primer': 'LinkerPrimerSequence',
+    }
+    sort_columns = ['BarcodeSequence', 'LinkerPrimerSequence']
+
+    if 'reverselinkerprimer' in df.columns:
+        rename_cols['reverselinkerprimer'] = 'ReverseLinkerPrimer'
+        sort_columns.append('ReverseLinkerPrimer')
+
+    df.rename(columns=rename_cols, inplace=True)
+    # by design the prep info file doesn't have a Description column so we can
+    # fill without checking
+    df['Description'] = 'XXQIITAXX'
+
+    # sorting columns to be a valid "classic" QIIME1 mapping file
+    columns = df.columns.values.tolist()
+    columns.remove('BarcodeSequence')
+    columns.remove('LinkerPrimerSequence')
+    columns.remove('Description')
+    sort_columns.extend(columns)
+    sort_columns.append('Description')
+
+    df = df[sort_columns]
+
+    qiime_map = join(out_dir, 'qiime-mapping-file.txt')
+    df.index.name = '#SampleID'
+    df.to_csv(qiime_map, sep='\t')
 
     return fps, qiime_map, artifact_type
 
