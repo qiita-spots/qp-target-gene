@@ -44,8 +44,9 @@ def get_artifact_information(qclient, artifact_id, out_dir):
     prep_info = qclient.get('/qiita_db/prep_template/%s/'
                             % artifact_info['prep_information'][0])
 
-    df = pd.read_csv(
-        prep_info['prep-file'], sep='\t', index_col=0, dtype='str')
+    df = pd.read_csv(prep_info['prep-file'], sep='\t', dtype='str',
+                     na_values=[], keep_default_na=True)
+    df.set_index('sample_name', inplace=True)
 
     rename_cols = {
         'barcode': 'BarcodeSequence',
@@ -59,9 +60,9 @@ def get_artifact_information(qclient, artifact_id, out_dir):
 
     df.rename(columns=rename_cols, inplace=True)
     # by design the prep info file doesn't have a Description column so we can
-    # prefil without checking
+    # fill without checking
     index = df.index
-    df['Description'] = pd.Series(['XXQIITAXX'] * len(index), index=index)
+    df['Description'] = 'XXQIITAXX'
 
     # sorting columns to be a valid "classic" QIIME1 mapping file
     columns = df.columns.values.tolist()
