@@ -48,25 +48,30 @@ def get_artifact_information(qclient, artifact_id, out_dir):
                      na_values=[], keep_default_na=False)
     df.set_index('sample_name', inplace=True)
 
-    rename_cols = {
-        'barcode': 'BarcodeSequence',
-        'primer': 'LinkerPrimerSequence',
-    }
-    sort_columns = ['BarcodeSequence', 'LinkerPrimerSequence']
-
-    if 'reverselinkerprimer' in df.columns:
-        rename_cols['reverselinkerprimer'] = 'ReverseLinkerPrimer'
+    # rename columns to match QIIME 1 required columns
+    columns = df.columns.values.tolist()
+    sort_columns = []
+    if 'barcode' in columns:
+        df.rename(columns={'barcode': 'BarcodeSequence'}, inplace=True)
+        sort_columns.append('BarcodeSequence')
+    if 'primer' in columns:
+        df.rename(columns={'primer': 'LinkerPrimerSequence'}, inplace=True)
+        sort_columns.append('LinkerPrimerSequence')
+    if 'reverselinkerprimer' in columns:
+        df.rename(columns={'reverselinkerprimer': 'ReverseLinkerPrimer'},
+                  inplace=True)
         sort_columns.append('ReverseLinkerPrimer')
 
-    df.rename(columns=rename_cols, inplace=True)
     # by design the prep info file doesn't have a Description column so we can
     # fill without checking
     df['Description'] = 'XXQIITAXX'
 
     # sorting columns to be a valid "classic" QIIME1 mapping file
     columns = df.columns.values.tolist()
-    columns.remove('BarcodeSequence')
-    columns.remove('LinkerPrimerSequence')
+    if 'BarcodeSequence' in columns:
+        columns.remove('BarcodeSequence')
+    if 'LinkerPrimerSequence' in columns:
+        columns.remove('LinkerPrimerSequence')
     columns.remove('Description')
     sort_columns.extend(columns)
     sort_columns.append('Description')
