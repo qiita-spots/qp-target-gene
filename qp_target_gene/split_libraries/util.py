@@ -37,7 +37,8 @@ def get_artifact_information(qclient, artifact_id, out_dir):
     """
     # Get the artifact filepath information
     artifact_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
-    fps = artifact_info['files']
+    fps = {k: [vv['filepath'] for vv in v]
+           for k, v in artifact_info['files'].items()}
     # Get the artifact type
     artifact_type = artifact_info['type']
     # Get the artifact metadata

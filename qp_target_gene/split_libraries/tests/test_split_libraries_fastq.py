@@ -352,6 +352,7 @@ class SplitLibrariesFastqTests(PluginTestCase):
 
         # Create the files that Qiita returns (they don't exist in the test)
         files = self.qclient.get('/qiita_db/artifacts/1/')['files']
+        files = {k: [vv['filepath'] for vv in v] for k, v in files.items()}
         bcds_fp = files['raw_barcodes'][0]
         self._clean_up_files.append(bcds_fp)
         with GzipFile(bcds_fp, mode='w') as fh:

@@ -109,7 +109,7 @@ class PickOTUsTests(PluginTestCase):
 
         # These filepaths do not exist in Qiita - create them
         fps = self.qclient.get('/qiita_db/artifacts/2/')['files']
-        fasta_fp = fps['preprocessed_fasta'][0]
+        fasta_fp = fps['preprocessed_fasta'][0]['filepath']
         self.parameters['reference-seq'] = '/tmp/seq.fna'
         self.parameters['reference-tax'] = '/tmp/tax.txt'
         with open(fasta_fp, 'w') as f:

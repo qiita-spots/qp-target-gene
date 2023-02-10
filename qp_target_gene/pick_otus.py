@@ -154,7 +154,7 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(job_id, "Step 1 of 4: Collecting information")
     artifact_id = parameters['input_data']
     a_info = qclient.get("/qiita_db/artifacts/%s/" % artifact_id)
-    fps = a_info['files']
+    fps = {k: [vv['filepath'] for vv in v] for k, v in a_info['files'].items()}
 
     qclient.update_job_step(job_id, "Step 2 of 4: Generating command")
     command, pick_out = generate_pick_closed_reference_otus_cmd(
