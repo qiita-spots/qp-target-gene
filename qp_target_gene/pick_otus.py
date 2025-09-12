@@ -168,7 +168,7 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
 
     qclient.update_job_step(job_id, "Step 2 of 4: Generating command")
     command, pick_out = generate_pick_closed_reference_otus_cmd(
-        fps, out_dir, parameters)
+        qclient, fps, out_dir, parameters)
 
     qclient.update_job_step(job_id, "Step 3 of 4: Executing OTU picking")
     std_out, std_err, return_value = system_call(command)
