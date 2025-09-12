@@ -113,7 +113,7 @@ class UtilTests(PluginTestCase):
             generate_demux_file(out_dir)
 
     def test_generate_artifact_info(self):
-        obs = generate_artifact_info("/sl/output/")
+        obs = generate_artifact_info(self.qclient, "/sl/output/")
         fps = [("/sl/output/seqs.fna", "preprocessed_fasta"),
                ("/sl/output/seqs.fastq", "preprocessed_fastq"),
                ("/sl/output/seqs.demux", "preprocessed_demux"),

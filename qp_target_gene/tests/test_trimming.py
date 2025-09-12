@@ -90,7 +90,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming([fp], out_dir, {'length': 10})
+        generate_trimming(self.qclient, [fp], out_dir, {'length': 10})
 
         # just gonna check the first 2 seqs
         pd = partial(join, out_dir)
@@ -119,7 +119,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming([fp], out_dir, {'length': 51})
+        generate_trimming(self.qclient, [fp], out_dir, {'length': 51})
 
         pd = partial(join, out_dir)
         with open(pd('seqs.fna')) as ffh, open(pd('seqs.fastq')) as qfh:

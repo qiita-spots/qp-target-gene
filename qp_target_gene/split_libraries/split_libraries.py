@@ -205,10 +205,11 @@ def split_libraries(qclient, job_id, parameters, out_dir):
                          'this by following: '
                          'https://github.com/biocore/qiita/issues/953')
     elif seqs:
-        seqs = sorted(seqs)
-        quals = sorted(quals)
+        seqs = sorted(list(map(qclient.fetch_file_from_central, seqs)))
+        quals = sorted(list(map(qclient.fetch_file_from_central, quals)))
     else:
-        cmds, seqs, quals = generate_process_sff_commands(sffs, out_dir)
+        cmds, seqs, quals = generate_process_sff_commands(
+            list(map(qclient.fetch_file_from_central, sffs)), out_dir)
         len_cmds = len(cmds)
         for i, cmd in enumerate(cmds):
             qclient.update_job_step(

@@ -87,7 +87,7 @@ jobs:
           pip --quiet install .
           pip --quiet install coveralls
 
-          configure_target_gene --env-script "source /home/runner/.profile; conda activate qp-target-gene" --server-cert $QIITA_SERVER_CERT
+          configure_target_gene --env-script "source /home/runner/.profile; conda activate qp-target-gene" --server-cert $QIITA_SERVER_CERT filesystem
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
@@ -110,6 +110,7 @@ jobs:
           export NGINX_FILE=`pwd`/qiita-dev/qiita_pet/nginx_example.conf
           export NGINX_FILE_NEW=`pwd`/qiita-dev/qiita_pet/nginx_example_local.conf
           sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" ${NGINX_FILE} > ${NGINX_FILE_NEW}
+          sed -i "s#/Users/username/qiita#${PWD}/qiita-dev#g" ${NGINX_FILE_NEW}
           nginx -c ${NGINX_FILE_NEW}
 
           echo "3. Setting up qiita"

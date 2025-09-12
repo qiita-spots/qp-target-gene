@@ -246,6 +246,9 @@ def split_libraries_fastq(qclient, job_id, parameters, out_dir):
     filepaths, mapping_file, atype = get_artifact_information(
         qclient, artifact_id, out_dir)
 
+    # transfer all files from qiita main to here
+    filepaths = list(map(qclient.fetch_file_from_central, filepaths))
+
     # Step 2 generate the split libraries fastq command
     qclient.update_job_step(job_id, "Step 2 of 4: Generating command")
     command, sl_out = generate_split_libraries_fastq_cmd(

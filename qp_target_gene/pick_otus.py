@@ -34,12 +34,14 @@ def write_parameters_file(fp, parameters):
             f.write("pick_otus:%s\t%s\n" % (p, parameters[p]))
 
 
-def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
-                                            test=False):
+def generate_pick_closed_reference_otus_cmd(qclient, filepaths, out_dir,
+                                            parameters, test=False):
     """Generates the pick_closed_reference_otus.py command
 
     Parameters
     ----------
+    qclient : tgp.qiita_client.QiitaClient
+        The Qiita server client
     filepaths : list of (str, str)
         The artifact's filepaths and their types
     out_dir : str
@@ -56,7 +58,8 @@ def generate_pick_closed_reference_otus_cmd(filepaths, out_dir, parameters,
         The output directory
     """
     # It should be only a single preprocessed fasta file
-    seqs_fp = filepaths['preprocessed_fasta'][0]
+    seqs_fp = qclient.fetch_file_from_central(
+        filepaths['preprocessed_fasta'][0])
 
     output_dir = join(out_dir, 'cr_otus')
     param_fp = join(out_dir, 'cr_params.txt')
@@ -106,11 +109,13 @@ def generate_sortmerna_tgz(out_dir):
         tar.add(to_tgz, arcname=basename(to_tgz))
 
 
-def generate_artifact_info(pick_out):
+def generate_artifact_info(qclient, pick_out):
     """Creates the artifact information to attach to the payload
 
     Parameters
     ----------
+    qclient : tgp.qiita_client.QiitaClient
+        The Qiita server client
     pick_out : str
         Path to the pick otus directory
 
@@ -120,10 +125,15 @@ def generate_artifact_info(pick_out):
         The artifacts information
     """
     path_builder = partial(join, pick_out)
-    filepaths = [(path_builder('otu_table.biom'), 'biom'),
-                 (path_builder('sortmerna_picked_otus'), 'directory'),
-                 (path_builder('sortmerna_picked_otus.tgz'), 'tgz'),
-                 (glob(path_builder('log_*.txt'))[0], 'log')]
+    filepaths = [
+        (qclient.push_file_to_central(
+            path_builder('otu_table.biom')), 'biom'),
+        (qclient.push_file_to_central(
+            path_builder('sortmerna_picked_otus')), 'directory'),
+        (qclient.push_file_to_central(
+            path_builder('sortmerna_picked_otus.tgz')), 'tgz'),
+        (qclient.push_file_to_central(
+            glob(path_builder('log_*.txt'))[0]), 'log')]
     return [ArtifactInfo('OTU table', 'BIOM', filepaths)]
 
 

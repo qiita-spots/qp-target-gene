@@ -65,7 +65,7 @@ class PickOTUsTests(PluginTestCase):
                      'preprocessed_demux': ['/directory/seqs.demux']}
 
         obs, obs_dir = generate_pick_closed_reference_otus_cmd(
-            filepaths, output_dir, self.parameters, True)
+            self.qclient, filepaths, output_dir, self.parameters, True)
         exp = ("pick_closed_reference_otus.py -i /directory/seqs.fna "
                "-r /databases/gg/13_8/rep_set/97_otus.fasta -o {0}/cr_otus "
                "-p {0}/cr_params.txt -t "
@@ -89,7 +89,7 @@ class PickOTUsTests(PluginTestCase):
             f.write("\n")
         self._clean_up_files.append(log_fp)
 
-        obs = generate_artifact_info(outdir)
+        obs = generate_artifact_info(self.qclient, outdir)
         fps = [(join(outdir, "otu_table.biom"), "biom"),
                (join(outdir, "sortmerna_picked_otus"), "directory"),
                (join(outdir, "sortmerna_picked_otus.tgz"), "tgz"),

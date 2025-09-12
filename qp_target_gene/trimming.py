@@ -18,11 +18,13 @@ from qiita_files.format.fasta import format_fasta_record
 from qiita_files.format.fastq import format_fastq_record
 
 
-def generate_trimming(filepaths, out_dir, parameters):
+def generate_trimming(qclient, filepaths, out_dir, parameters):
     """Generate the trimming of the filepaths
 
     Parameters
     ----------
+    qclient : tgp.qiita_client.QiitaClient
+        The Qiita server client
     filepaths : list of str
         The demux filepaths
     out_dir : str
@@ -38,6 +40,7 @@ def generate_trimming(filepaths, out_dir, parameters):
     ffp = pd('seqs.fna')
     qfp = pd('seqs.fastq')
     for f in filepaths:
+        f = qclient.fetch_file_from_central(f)
         with open(ffp, 'w') as ffh, open(qfp, 'w') as qfh, File(f) as fh:
             for samp, idx, seq, qual, bc_ori, bc_cor, bc_err in fetch(fh):
                 # only one of these comparisons should suffice but better
@@ -84,7 +87,7 @@ def trimming(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     qclient.update_job_step(job_id, "Step 2 of 3: Executing Trimming")
-    generate_trimming(fps['preprocessed_demux'], out_dir, parameters)
+    generate_trimming(qclient, fps['preprocessed_demux'], out_dir, parameters)
 
     qclient.update_job_step(job_id, "Step 3 of 3: Generating new Demuxed")
     generate_demux_file(out_dir)
@@ -93,8 +96,11 @@ def trimming(qclient, job_id, parameters, out_dir):
     ainfo = [
         ArtifactInfo(
             'Trimmed Demultiplexed', 'Demultiplexed',
-            [(pb('seqs.fna'), 'preprocessed_fasta'),
-             (pb('seqs.fastq'), 'preprocessed_fastq'),
-             (pb('seqs.demux'), 'preprocessed_demux')])]
+            [(qclient.push_file_to_central(pb('seqs.fna')),
+              'preprocessed_fasta'),
+             (qclient.push_file_to_central(pb('seqs.fastq')),
+              'preprocessed_fastq'),
+             (qclient.push_file_to_central(pb('seqs.demux')),
+              'preprocessed_demux')])]
 
     return True, ainfo, ""
