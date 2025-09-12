@@ -79,13 +79,13 @@ jobs:
           conda activate qp-target-gene
           conda install --yes -c bioconda -c biocore SortMeRNA==2.0 numpy==1.13.1 pigz
 
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           pip --quiet install -U pip
           pip --quiet install .
           pip --quiet install coveralls
 
-          configure_target_gene --env-script "source /home/runner/.profile; conda activate qp-target-gene" --server-cert $QIITA_SERVER_CERT filesystem
+          configure_target_gene --env-script "source /home/runner/.profile; conda activate qp-target-gene" --server-cert $QIITA_ROOTCA_CERT filesystem
 
           echo "Available Qiita plugins"
           ls ~/.qiita_plugins/
@@ -94,7 +94,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate qiita
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
           sed "s#/home/runner/work/qiita/qiita#${PWD}/qiita-dev/#g" `pwd`/qiita-dev/qiita_core/support_files/config_test.cfg > ${QIITA_CONFIG_FP}
 
@@ -127,7 +127,7 @@ jobs:
           COVER_PACKAGE: ${{ matrix.cover_package }}
         run: |
           conda activate qp-target-gene
-          export QIITA_SERVER_CERT=`pwd`/qiita-dev/qiita_core/support_files/server.crt
+          export QIITA_ROOTCA_CERT=`pwd`/qiita-dev/qiita_core/support_files/ci_rootca.crt
           export QIITA_CONFIG_FP=`pwd`/qiita-dev/qiita_core/support_files/config_test_local.cfg
 
           export PYTHONWARNINGS="ignore:Certificate for localhost has no \`subjectAltName\`"
