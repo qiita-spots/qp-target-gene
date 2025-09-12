@@ -185,6 +185,6 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
         error_msg = ("Error while tgz failures:\nError: %s" % str(e))
         return False, None, error_msg
 
-    artifacts_info = generate_artifact_info(pick_out)
+    artifacts_info = generate_artifact_info(qclient, pick_out)
 
     return True, artifacts_info, ""
