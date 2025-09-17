@@ -7,7 +7,7 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os.path import isdir, exists, join
+from os.path import isdir, exists, join, basename
 from os import remove, close, mkdir
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
@@ -85,9 +85,12 @@ class PickOTUsTests(PluginTestCase):
         outdir = mkdtemp()
         self._clean_up_files.append(outdir)
         log_fp = join(outdir, "log_20151204223007.txt")
-        with open(log_fp, 'w') as f:
-            f.write("\n")
-        self._clean_up_files.append(log_fp)
+        for file in [basename(log_fp), "otu_table.biom",
+                     "sortmerna_picked_otus", "sortmerna_picked_otus.tgz"]:
+            file_fp = join(outdir, file)
+            with open(file_fp, 'w') as f:
+                f.write("empty file for testing\n")
+            self._clean_up_files.append(file_fp)
 
         obs = generate_artifact_info(self.qclient, outdir)
         fps = [(join(outdir, "otu_table.biom"), "biom"),
