@@ -101,7 +101,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming(self.qclient, [TrimmingTest._fix_filepath(fp)],
+        generate_trimming(self.qclient, [TrimmingTest._fix_filepath(self, fp)],
                           out_dir, {'length': 10})
 
         # just gonna check the first 2 seqs
@@ -131,7 +131,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming(self.qclient, [TrimmingTest._fix_filepath(fp)],
+        generate_trimming(self.qclient, [TrimmingTest._fix_filepath(self, fp)],
                           out_dir, {'length': 51})
 
         pd = partial(join, out_dir)
