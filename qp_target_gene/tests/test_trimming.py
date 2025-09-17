@@ -68,7 +68,6 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-
         success, ainfo, msg = trimming(self.qclient, jid, params, out_dir)
         self.assertTrue(success)
         pb = partial(join, out_dir)
@@ -81,6 +80,18 @@ class TrimmingTest(PluginTestCase):
         self.assertEqual(ainfo, exp_ainfo)
         self.assertEqual(msg, "")
 
+    def _fix_filepath(self, fp):
+        # the file support_files/filtered_5_seqs.demux is not properly
+        # integrated into qiita's BASE_DATA_DIR, but only copied into a tmp dir
+        # this is OK for plugincoupling == filesystem, but will fail otherwise.
+        # We therefore here push the file to qiita main and, when addressed,
+        # prepend the BASE_DATA_DIR to the filename, which is '/qiita_test/'
+        # when testing here: https://github.com/jlab/qiita-keycloak
+        if self.qclient._plugincoupling == 'filesystem':
+            return fp
+        else:
+            return join('/qiita_data/', self.qclient.push_file_to_central(fp))
+
     def test_generate_trimming(self):
         # generating filepaths
         fd, fp = mkstemp(suffix='_seqs.demux')
@@ -90,7 +101,8 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming(self.qclient, [fp], out_dir, {'length': 10})
+        generate_trimming(self.qclient, [TrimmingTest._fix_filepath(fp)],
+                          out_dir, {'length': 10})
 
         # just gonna check the first 2 seqs
         pd = partial(join, out_dir)
@@ -119,7 +131,8 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming(self.qclient, [fp], out_dir, {'length': 51})
+        generate_trimming(self.qclient, [TrimmingTest._fix_filepath(fp)],
+                          out_dir, {'length': 51})
 
         pd = partial(join, out_dir)
         with open(pd('seqs.fna')) as ffh, open(pd('seqs.fastq')) as qfh:
