@@ -119,12 +119,15 @@ class PickOTUsTests(PluginTestCase):
             makedirs(dirname(fasta_fp))
         with open(fasta_fp, 'w') as f:
             f.write(READS)
+        self.qclient.push_file_to_central(fasta_fp)
         # self._clean_up_files.append(fasta_fp)
         with open(self.parameters['reference-seq'], 'w') as f:
             f.write(REF_SEQ)
+        self.qclient.push_file_to_central(self.parameters['reference-seq'])
         # self._clean_up_files.append(self.parameters['reference-seq'])
         with open(self.parameters['reference-tax'], 'w') as f:
             f.write(REF_TAX)
+        self.qclient.push_file_to_central(self.parameters['reference-tax'])
         # self._clean_up_files.append(self.parameters['reference-tax'])
 
         out_dir = mkdtemp()
