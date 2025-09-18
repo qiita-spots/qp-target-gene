@@ -7,8 +7,8 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os.path import isdir, exists, join
-from os import remove, close
+from os.path import isdir, exists, join, isabs
+from os import remove, close, sep
 from shutil import rmtree, copyfile
 from tempfile import mkstemp, mkdtemp
 from json import dumps
@@ -90,7 +90,14 @@ class TrimmingTest(PluginTestCase):
         if self.qclient._plugincoupling == 'filesystem':
             return fp
         else:
-            return join('/qiita_data/', self.qclient.push_file_to_central(fp))
+            processed_fp = fp
+            if isabs(processed_fp):
+                processed_fp = processed_fp[len(sep):]
+            processed_fp = join('/qiita_data/', processed_fp)
+            # ensure file is transferred to qiita main
+            self.qclient.push_file_to_central(fp)
+            # return the filepath prepended with qiita main base_data_dir
+            return processed_fp
 
     def test_generate_trimming(self):
         # generating filepaths
