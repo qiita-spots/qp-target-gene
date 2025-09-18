@@ -7,8 +7,8 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os.path import isdir, exists, join, basename
-from os import remove, close, mkdir
+from os.path import isdir, exists, join, basename, dirname
+from os import remove, close, mkdir, makedirs
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
 from json import dumps
@@ -115,6 +115,8 @@ class PickOTUsTests(PluginTestCase):
         fasta_fp = fps['preprocessed_fasta'][0]['filepath']
         self.parameters['reference-seq'] = '/tmp/seq.fna'
         self.parameters['reference-tax'] = '/tmp/tax.txt'
+        if not exists(dirname(fasta_fp)):
+            makedirs(dirname(fasta_fp))
         with open(fasta_fp, 'w') as f:
             f.write(READS)
         # self._clean_up_files.append(fasta_fp)
