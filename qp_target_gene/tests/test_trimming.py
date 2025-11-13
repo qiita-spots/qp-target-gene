@@ -7,8 +7,8 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os.path import isdir, exists, join, isabs
-from os import remove, close, sep
+from os.path import isdir, exists, join
+from os import remove, close
 from shutil import rmtree, copyfile
 from tempfile import mkstemp, mkdtemp
 from json import dumps
