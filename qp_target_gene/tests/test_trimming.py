@@ -80,25 +80,6 @@ class TrimmingTest(PluginTestCase):
         self.assertEqual(ainfo, exp_ainfo)
         self.assertEqual(msg, "")
 
-    def _fix_filepath(self, fp):
-        # the file support_files/filtered_5_seqs.demux is not properly
-        # integrated into qiita's BASE_DATA_DIR, but only copied into a tmp dir
-        # this is OK for plugincoupling == filesystem, but will fail otherwise.
-        # We therefore here push the file to qiita main and, when addressed,
-        # prepend the BASE_DATA_DIR to the filename, which is '/qiita_test/'
-        # when testing here: https://github.com/jlab/qiita-keycloak
-        if self.qclient._plugincoupling == 'filesystem':
-            return fp
-        else:
-            processed_fp = fp
-            if isabs(processed_fp):
-                processed_fp = processed_fp[len(sep):]
-            processed_fp = join('/qiita_data/', processed_fp)
-            # ensure file is transferred to qiita main
-            self.qclient.push_file_to_central(fp)
-            # return the filepath prepended with qiita main base_data_dir
-            return processed_fp
-
     def test_generate_trimming(self):
         # generating filepaths
         fd, fp = mkstemp(suffix='_seqs.demux')
@@ -108,7 +89,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming(self.qclient, [TrimmingTest._fix_filepath(self, fp)],
+        generate_trimming(self.qclient, [self.deposite_in_qiita_basedir(fp)],
                           out_dir, {'length': 10})
 
         # just gonna check the first 2 seqs
@@ -138,7 +119,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming(self.qclient, [TrimmingTest._fix_filepath(self, fp)],
+        generate_trimming(self.qclient, [self.deposite_in_qiita_basedir(fp)],
                           out_dir, {'length': 51})
 
         pd = partial(join, out_dir)
