@@ -125,11 +125,10 @@ def generate_artifact_info(pick_out):
         The artifacts information
     """
     path_builder = partial(join, pick_out)
-    filepaths = [
-        (path_builder('otu_table.biom'), 'biom'),
-        (path_builder('sortmerna_picked_otus'), 'directory'),
-        (path_builder('sortmerna_picked_otus.tgz'), 'tgz'),
-        (glob(path_builder('log_*.txt'))[0], 'log')]
+    filepaths = [(path_builder('otu_table.biom'), 'biom'),
+                 (path_builder('sortmerna_picked_otus'), 'directory'),
+                 (path_builder('sortmerna_picked_otus.tgz'), 'tgz'),
+                 (glob(path_builder('log_*.txt'))[0], 'log')]
     return [ArtifactInfo('OTU table', 'BIOM', filepaths)]
 
 

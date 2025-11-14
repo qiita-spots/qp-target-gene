@@ -171,9 +171,8 @@ def generate_artifact_info(sl_out):
         - The list of filepaths with their artifact type
     """
     path_builder = partial(join, sl_out)
-    filepaths = [
-        (path_builder('seqs.fna'), 'preprocessed_fasta'),
-        (path_builder('seqs.fastq'), 'preprocessed_fastq'),
-        (path_builder('seqs.demux'), 'preprocessed_demux'),
-        (path_builder('split_library_log.txt'), 'log')]
+    filepaths = [(path_builder('seqs.fna'), 'preprocessed_fasta'),
+                 (path_builder('seqs.fastq'), 'preprocessed_fastq'),
+                 (path_builder('seqs.demux'), 'preprocessed_demux'),
+                 (path_builder('split_library_log.txt'), 'log')]
     return [ArtifactInfo('demultiplexed', 'Demultiplexed', filepaths)]
