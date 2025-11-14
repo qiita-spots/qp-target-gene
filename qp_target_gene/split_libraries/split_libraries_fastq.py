@@ -269,6 +269,6 @@ def split_libraries_fastq(qclient, job_id, parameters, out_dir):
     qclient.update_job_step(job_id, "Step 4 of 4: Generating demux file")
     generate_demux_file(sl_out)
 
-    artifacts_info = generate_artifact_info(qclient, sl_out)
+    artifacts_info = generate_artifact_info(sl_out)
 
     return True, artifacts_info, ""

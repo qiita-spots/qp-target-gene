@@ -118,7 +118,7 @@ class UtilTests(PluginTestCase):
         protocol = self.qclient._plugincoupling
         self.qclient._plugincoupling = 'filesystem'
 
-        obs = generate_artifact_info(self.qclient, "/sl/output/")
+        obs = generate_artifact_info("/sl/output/")
         # revert protocol for further tests
         self.qclient._plugincoupling, protocol
         fps = [("/sl/output/seqs.fna", "preprocessed_fasta"),

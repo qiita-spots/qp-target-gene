@@ -273,6 +273,6 @@ def split_libraries(qclient, job_id, parameters, out_dir):
 
     generate_demux_file(output_dir)
 
-    artifacts_info = generate_artifact_info(qclient, output_dir)
+    artifacts_info = generate_artifact_info(output_dir)
 
     return True, artifacts_info, ""
