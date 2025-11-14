@@ -59,8 +59,6 @@ def generate_pick_closed_reference_otus_cmd(qclient, filepaths, out_dir,
     """
     # It should be only a single preprocessed fasta file
     seqs_fp = filepaths['preprocessed_fasta'][0]
-    if not test:
-        seqs_fp = filepaths['preprocessed_fasta'][0]
 
     output_dir = join(out_dir, 'cr_otus')
     param_fp = join(out_dir, 'cr_params.txt')
