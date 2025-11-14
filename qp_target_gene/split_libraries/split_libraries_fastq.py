@@ -258,7 +258,6 @@ def split_libraries_fastq(qclient, job_id, parameters, out_dir):
     # Step 3 execute split libraries
     qclient.update_job_step(
         job_id, "Step 3 of 4: Executing demultiplexing and quality control")
-
     std_out, std_err, return_value = system_call(command)
     if return_value != 0:
         raise RuntimeError(
