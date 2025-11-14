@@ -96,11 +96,8 @@ def trimming(qclient, job_id, parameters, out_dir):
     ainfo = [
         ArtifactInfo(
             'Trimmed Demultiplexed', 'Demultiplexed',
-            [(qclient.push_file_to_central(pb('seqs.fna')),
-              'preprocessed_fasta'),
-             (qclient.push_file_to_central(pb('seqs.fastq')),
-              'preprocessed_fastq'),
-             (qclient.push_file_to_central(pb('seqs.demux')),
-              'preprocessed_demux')])]
+            [(pb('seqs.fna'), 'preprocessed_fasta'),
+             (pb('seqs.fastq'), 'preprocessed_fastq'),
+             (pb('seqs.demux'), 'preprocessed_demux')])]
 
     return True, ainfo, ""

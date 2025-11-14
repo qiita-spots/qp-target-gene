@@ -111,13 +111,11 @@ def generate_sortmerna_tgz(out_dir):
         tar.add(to_tgz, arcname=basename(to_tgz))
 
 
-def generate_artifact_info(qclient, pick_out):
+def generate_artifact_info(pick_out):
     """Creates the artifact information to attach to the payload
 
     Parameters
     ----------
-    qclient : tgp.qiita_client.QiitaClient
-        The Qiita server client
     pick_out : str
         Path to the pick otus directory
 
@@ -128,14 +126,10 @@ def generate_artifact_info(qclient, pick_out):
     """
     path_builder = partial(join, pick_out)
     filepaths = [
-        (qclient.push_file_to_central(
-            path_builder('otu_table.biom')), 'biom'),
-        (qclient.push_file_to_central(
-            path_builder('sortmerna_picked_otus')), 'directory'),
-        (qclient.push_file_to_central(
-            path_builder('sortmerna_picked_otus.tgz')), 'tgz'),
-        (qclient.push_file_to_central(
-            glob(path_builder('log_*.txt'))[0]), 'log')]
+        (path_builder('otu_table.biom'), 'biom'),
+        (path_builder('sortmerna_picked_otus'), 'directory'),
+        (path_builder('sortmerna_picked_otus.tgz'), 'tgz'),
+        (glob(path_builder('log_*.txt'))[0], 'log')]
     return [ArtifactInfo('OTU table', 'BIOM', filepaths)]
 
 
@@ -187,6 +181,6 @@ def pick_closed_reference_otus(qclient, job_id, parameters, out_dir):
         error_msg = ("Error while tgz failures:\nError: %s" % str(e))
         return False, None, error_msg
 
-    artifacts_info = generate_artifact_info(qclient, pick_out)
+    artifacts_info = generate_artifact_info(pick_out)
 
     return True, artifacts_info, ""
