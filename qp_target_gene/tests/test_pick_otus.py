@@ -92,7 +92,7 @@ class PickOTUsTests(PluginTestCase):
                 f.write("empty file for testing\n")
             self._clean_up_files.append(file_fp)
 
-        obs = generate_artifact_info(self.qclient, outdir)
+        obs = generate_artifact_info(outdir)
         fps = [(join(outdir, "otu_table.biom"), "biom"),
                (join(outdir, "sortmerna_picked_otus"), "directory"),
                (join(outdir, "sortmerna_picked_otus.tgz"), "tgz"),
