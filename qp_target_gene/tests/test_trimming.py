@@ -68,6 +68,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
+
         success, ainfo, msg = trimming(self.qclient, jid, params, out_dir)
         self.assertTrue(success)
         pb = partial(join, out_dir)
@@ -89,7 +90,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming(self.qclient, [self.deposite_in_qiita_basedir(fp)],
+        generate_trimming([self.deposite_in_qiita_basedir(fp)],
                           out_dir, {'length': 10})
 
         # just gonna check the first 2 seqs
@@ -119,7 +120,7 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming(self.qclient, [self.deposite_in_qiita_basedir(fp)],
+        generate_trimming([self.deposite_in_qiita_basedir(fp)],
                           out_dir, {'length': 51})
 
         pd = partial(join, out_dir)

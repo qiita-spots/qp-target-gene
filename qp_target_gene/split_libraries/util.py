@@ -45,9 +45,8 @@ def get_artifact_information(qclient, artifact_id, out_dir):
     prep_info = qclient.get('/qiita_db/prep_template/%s/'
                             % artifact_info['prep_information'][0])
 
-    df = pd.read_csv(
-        qclient.fetch_file_from_central(prep_info['prep-file']),
-        sep='\t', dtype='str', na_values=[], keep_default_na=False)
+    df = pd.read_csv(prep_info['prep-file'], sep='\t', dtype='str',
+                     na_values=[], keep_default_na=False)
     df.set_index('sample_name', inplace=True)
 
     # rename columns to match QIIME 1 required columns
