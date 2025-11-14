@@ -18,13 +18,11 @@ from qiita_files.format.fasta import format_fasta_record
 from qiita_files.format.fastq import format_fastq_record
 
 
-def generate_trimming(qclient, filepaths, out_dir, parameters):
+def generate_trimming(filepaths, out_dir, parameters):
     """Generate the trimming of the filepaths
 
     Parameters
     ----------
-    qclient : tgp.qiita_client.QiitaClient
-        The Qiita server client
     filepaths : list of str
         The demux filepaths
     out_dir : str
@@ -86,7 +84,7 @@ def trimming(qclient, job_id, parameters, out_dir):
         return False, None, error_msg
 
     qclient.update_job_step(job_id, "Step 2 of 3: Executing Trimming")
-    generate_trimming(qclient, fps['preprocessed_demux'], out_dir, parameters)
+    generate_trimming(fps['preprocessed_demux'], out_dir, parameters)
 
     qclient.update_job_step(job_id, "Step 3 of 3: Generating new Demuxed")
     generate_demux_file(out_dir)
