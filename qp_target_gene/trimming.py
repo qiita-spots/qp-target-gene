@@ -40,7 +40,6 @@ def generate_trimming(qclient, filepaths, out_dir, parameters):
     ffp = pd('seqs.fna')
     qfp = pd('seqs.fastq')
     for f in filepaths:
-        f = qclient.fetch_file_from_central(f)
         with open(ffp, 'w') as ffh, open(qfp, 'w') as qfh, File(f) as fh:
             for samp, idx, seq, qual, bc_ori, bc_cor, bc_err in fetch(fh):
                 # only one of these comparisons should suffice but better
