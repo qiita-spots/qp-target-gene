@@ -153,13 +153,11 @@ def generate_demux_file(sl_out):
     return demux_fp
 
 
-def generate_artifact_info(qclient, sl_out):
+def generate_artifact_info(sl_out):
     """Creates the artifact information to attach to the payload
 
     Parameters
     ----------
-    qclient : tgp.qiita_client.QiitaClient
-        The Qiita server client
     sl_out : str
         Path to the split libraries output directory
 
@@ -174,12 +172,8 @@ def generate_artifact_info(qclient, sl_out):
     """
     path_builder = partial(join, sl_out)
     filepaths = [
-        (qclient.push_file_to_central(path_builder('seqs.fna')),
-         'preprocessed_fasta'),
-        (qclient.push_file_to_central(path_builder('seqs.fastq')),
-         'preprocessed_fastq'),
-        (qclient.push_file_to_central(path_builder('seqs.demux')),
-         'preprocessed_demux'),
-        (qclient.push_file_to_central(path_builder('split_library_log.txt')),
-         'log')]
+        (path_builder('seqs.fna'), 'preprocessed_fasta'),
+        (path_builder('seqs.fastq'), 'preprocessed_fastq'),
+        (path_builder('seqs.demux'), 'preprocessed_demux'),
+        (path_builder('split_library_log.txt'), 'log')]
     return [ArtifactInfo('demultiplexed', 'Demultiplexed', filepaths)]
