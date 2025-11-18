@@ -111,7 +111,8 @@ class PickOTUsTests(PluginTestCase):
             '/apitest/processing_job/', data=data)['job']
 
         # These filepaths do not exist in Qiita - create them
-        fps = self.qclient.get('/qiita_db/artifacts/2/')['files']
+        fps = self.qclient.get('/qiita_db/artifacts/2/',
+                               no_file_fetching=True)['files']
         fasta_fp = fps['preprocessed_fasta'][0]['filepath']
         self.parameters['reference-seq'] = '/tmp/seq.fna'
         self.parameters['reference-tax'] = '/tmp/tax.txt'

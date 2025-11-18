@@ -351,7 +351,8 @@ class SplitLibrariesFastqTests(PluginTestCase):
             '/apitest/processing_job/', data=data)['job']
 
         # Create the files that Qiita returns (they don't exist in the test)
-        files = self.qclient.get('/qiita_db/artifacts/1/')['files']
+        files = self.qclient.get('/qiita_db/artifacts/1/',
+                                 no_file_fetching=True)['files']
         files = {k: [vv['filepath'] for vv in v] for k, v in files.items()}
         bcds_fp = files['raw_barcodes'][0]
         if not exists(dirname(bcds_fp)):
