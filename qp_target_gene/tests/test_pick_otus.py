@@ -113,6 +113,7 @@ class PickOTUsTests(PluginTestCase):
         # These filepaths do not exist in Qiita - create them
         fps = self.qclient.get('/qiita_db/artifacts/2/',
                                no_file_fetching=True)['files']
+
         fasta_fp = fps['preprocessed_fasta'][0]['filepath']
         self.parameters['reference-seq'] = '/tmp/seq.fna'
         self.parameters['reference-tax'] = '/tmp/tax.txt'
@@ -121,19 +122,27 @@ class PickOTUsTests(PluginTestCase):
         with open(fasta_fp, 'w') as f:
             f.write(READS)
         self.qclient.push_file_to_central(fasta_fp)
-        # self._clean_up_files.append(fasta_fp)
+        self._clean_up_files.append(fasta_fp)
         with open(self.parameters['reference-seq'], 'w') as f:
             f.write(REF_SEQ)
         self.qclient.push_file_to_central(self.parameters['reference-seq'])
-        # self._clean_up_files.append(self.parameters['reference-seq'])
+        self._clean_up_files.append(self.parameters['reference-seq'])
         with open(self.parameters['reference-tax'], 'w') as f:
             f.write(REF_TAX)
         self.qclient.push_file_to_central(self.parameters['reference-tax'])
-        # self._clean_up_files.append(self.parameters['reference-tax'])
+        self._clean_up_files.append(self.parameters['reference-tax'])
+        # Since qiita_client automatically tries to fetch all files of an
+        # artifact, these files need to exist in the firstplace, although they
+        # are not used in this test / pick_closed_reference_otus function
+        for ftype in ['demux', 'fastq']:
+            fp = fps['preprocessed_%s' % ftype][0]['filepath']
+            with open(fp, "w") as f:
+                f.write("fake %s file\n" % ftype)
+            self.qclient.push_file_to_central(fp)
+            self._clean_up_files.append(fp)
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-
         obs_success, obs_ainfo, obs_msg = pick_closed_reference_otus(
             self.qclient, job_id, self.parameters, out_dir)
         self.assertEqual(obs_msg, "")
