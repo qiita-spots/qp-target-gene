@@ -14,7 +14,7 @@ from .trimming import trimming
 
 # Initialize the plugin
 plugin = QiitaPlugin(
-    'QIIMEq2', '1.9.1', 'Quantitative Insights Into Microbial Ecology (QIIME)')
+    'QIIMEq2', '1.9.2', 'Quantitative Insights Into Microbial Ecology (QIIME)')
 
 # Define the Split libraries command
 req_params = {'input_data': ('artifact', ['FASTA', 'FASTA_Sanger', 'SFF'])}

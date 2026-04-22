@@ -100,7 +100,7 @@ class PickOTUsTests(PluginTestCase):
     def test_pick_closed_reference_otus(self):
         # Create a new job
         data = {'user': 'demo@microbio.me',
-                'command': dumps(['QIIMEq2', '1.9.1',
+                'command': dumps(['QIIMEq2', '1.9.2',
                                   'Pick closed-reference OTUs']),
                 'status': 'running',
                 'parameters': dumps(self.parameters)}

@@ -73,13 +73,11 @@ jobs:
         shell: bash -l {0}
         run: |
           conda activate qiita
-          sed -i "s|'1.9.1',|'1.9.hide',|" qiita-dev/qiita_db/support_files/populate_test_db.sql
           pip install qiita-dev/ --no-binary redbiom
           mkdir ~/.qiita_plugins
 
       - name: Install Qiita plugins
         shell: bash -l {0}
-        # TODO: there seems to be a conflict with parameter names for qp-target-gene. See: https://github.com/qiita-spots/qp-target-gene/issues/24
         run: |
           conda create --override-channels -c conda-forge -c bioconda -c biocore --quiet --yes -n qp-target-gene python=2.7 SortMeRNA==2.0 numpy==1.13.1 pigz biom-format
           conda activate qp-target-gene
