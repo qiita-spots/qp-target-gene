@@ -1,5 +1,5 @@
 Target Gene Qiita Plugin
-========================
+======================== 
 
 |Build Status|
 

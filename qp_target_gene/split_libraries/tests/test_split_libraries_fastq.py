@@ -344,7 +344,7 @@ class SplitLibrariesFastqTests(PluginTestCase):
                       "input_data": 1}
         data = {'user': 'demo@microbio.me',
                 'command': dumps(
-                    ['QIIMEq2', '1.9.1', 'Split libraries FASTQ']),
+                    ['QIIMEq2', '1.9.2', 'Split libraries FASTQ']),
                 'status': 'running',
                 'parameters': dumps(parameters)}
         job_id = self.qclient.post(
