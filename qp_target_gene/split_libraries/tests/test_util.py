@@ -113,7 +113,14 @@ class UtilTests(PluginTestCase):
             generate_demux_file(out_dir)
 
     def test_generate_artifact_info(self):
+        # ensure plugin coupling protocol is set to "filesystem" as the
+        # below files to NOT actually exist
+        protocol = self.qclient._plugincoupling
+        self.qclient._plugincoupling = 'filesystem'
+
         obs = generate_artifact_info("/sl/output/")
+        # revert protocol for further tests
+        self.qclient._plugincoupling, protocol
         fps = [("/sl/output/seqs.fna", "preprocessed_fasta"),
                ("/sl/output/seqs.fastq", "preprocessed_fastq"),
                ("/sl/output/seqs.demux", "preprocessed_demux"),

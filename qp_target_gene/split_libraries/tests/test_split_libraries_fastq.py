@@ -7,8 +7,8 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os.path import isdir, exists, join
-from os import remove, close
+from os.path import isdir, exists, join, dirname
+from os import remove, close, makedirs
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
 from json import dumps
@@ -351,16 +351,23 @@ class SplitLibrariesFastqTests(PluginTestCase):
             '/apitest/processing_job/', data=data)['job']
 
         # Create the files that Qiita returns (they don't exist in the test)
-        files = self.qclient.get('/qiita_db/artifacts/1/')['files']
+        files = self.qclient.get('/qiita_db/artifacts/1/',
+                                 no_file_fetching=True)['files']
         files = {k: [vv['filepath'] for vv in v] for k, v in files.items()}
         bcds_fp = files['raw_barcodes'][0]
+        if not exists(dirname(bcds_fp)):
+            makedirs(dirname(bcds_fp))
         self._clean_up_files.append(bcds_fp)
         with GzipFile(bcds_fp, mode='w') as fh:
             fh.write(BARCODES)
+        self.qclient.push_file_to_central(bcds_fp)
         fwd_fp = files['raw_forward_seqs'][0]
+        if not exists(dirname(fwd_fp)):
+            makedirs(dirname(fwd_fp))
         self._clean_up_files.append(fwd_fp)
         with GzipFile(fwd_fp, mode='w') as fh:
             fh.write(READS)
+        self.qclient.push_file_to_central(fwd_fp)
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)

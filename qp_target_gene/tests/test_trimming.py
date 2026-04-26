@@ -83,14 +83,15 @@ class TrimmingTest(PluginTestCase):
 
     def test_generate_trimming(self):
         # generating filepaths
-        fd, fp = mkstemp(suffix='_seqs.demux')
+        fd, fp = mkstemp(suffix='_seqs.demux', prefix=self.base_data_dir)
         close(fd)
         self._clean_up_files.append(fp)
         copyfile('support_files/filtered_5_seqs.demux', fp)
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming([fp], out_dir, {'length': 10})
+        generate_trimming([self.qclient.push_file_to_central(fp)],
+                          out_dir, {'length': 10})
 
         # just gonna check the first 2 seqs
         pd = partial(join, out_dir)
@@ -111,7 +112,7 @@ class TrimmingTest(PluginTestCase):
 
     def test_generate_trimming_rm_smaller(self):
         # generating filepaths
-        fd, fp = mkstemp(suffix='_seqs.demux')
+        fd, fp = mkstemp(suffix='_seqs.demux', prefix=self.base_data_dir)
         close(fd)
         self._clean_up_files.append(fp)
         # this file has all its seqs at 50bps, except 1
@@ -119,7 +120,8 @@ class TrimmingTest(PluginTestCase):
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-        generate_trimming([fp], out_dir, {'length': 51})
+        generate_trimming([self.qclient.push_file_to_central(fp)],
+                          out_dir, {'length': 51})
 
         pd = partial(join, out_dir)
         with open(pd('seqs.fna')) as ffh, open(pd('seqs.fastq')) as qfh:

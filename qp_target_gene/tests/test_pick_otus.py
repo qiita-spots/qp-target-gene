@@ -7,8 +7,8 @@
 # -----------------------------------------------------------------------------
 
 from unittest import main
-from os.path import isdir, exists, join
-from os import remove, close, mkdir
+from os.path import isdir, exists, join, basename, dirname
+from os import remove, close, mkdir, makedirs
 from shutil import rmtree
 from tempfile import mkstemp, mkdtemp
 from json import dumps
@@ -85,9 +85,12 @@ class PickOTUsTests(PluginTestCase):
         outdir = mkdtemp()
         self._clean_up_files.append(outdir)
         log_fp = join(outdir, "log_20151204223007.txt")
-        with open(log_fp, 'w') as f:
-            f.write("\n")
-        self._clean_up_files.append(log_fp)
+        for file in [basename(log_fp), "otu_table.biom",
+                     "sortmerna_picked_otus", "sortmerna_picked_otus.tgz"]:
+            file_fp = join(outdir, file)
+            with open(file_fp, 'w') as f:
+                f.write("empty file for testing\n")
+            self._clean_up_files.append(file_fp)
 
         obs = generate_artifact_info(outdir)
         fps = [(join(outdir, "otu_table.biom"), "biom"),
@@ -108,23 +111,38 @@ class PickOTUsTests(PluginTestCase):
             '/apitest/processing_job/', data=data)['job']
 
         # These filepaths do not exist in Qiita - create them
-        fps = self.qclient.get('/qiita_db/artifacts/2/')['files']
+        fps = self.qclient.get('/qiita_db/artifacts/2/',
+                               no_file_fetching=True)['files']
+
         fasta_fp = fps['preprocessed_fasta'][0]['filepath']
         self.parameters['reference-seq'] = '/tmp/seq.fna'
         self.parameters['reference-tax'] = '/tmp/tax.txt'
+        if not exists(dirname(fasta_fp)):
+            makedirs(dirname(fasta_fp))
         with open(fasta_fp, 'w') as f:
             f.write(READS)
-        # self._clean_up_files.append(fasta_fp)
+        self.qclient.push_file_to_central(fasta_fp)
+        self._clean_up_files.append(fasta_fp)
         with open(self.parameters['reference-seq'], 'w') as f:
             f.write(REF_SEQ)
-        # self._clean_up_files.append(self.parameters['reference-seq'])
+        self.qclient.push_file_to_central(self.parameters['reference-seq'])
+        self._clean_up_files.append(self.parameters['reference-seq'])
         with open(self.parameters['reference-tax'], 'w') as f:
             f.write(REF_TAX)
-        # self._clean_up_files.append(self.parameters['reference-tax'])
+        self.qclient.push_file_to_central(self.parameters['reference-tax'])
+        self._clean_up_files.append(self.parameters['reference-tax'])
+        # Since qiita_client automatically tries to fetch all files of an
+        # artifact, these files need to exist in the firstplace, although they
+        # are not used in this test / pick_closed_reference_otus function
+        for ftype in ['demux', 'fastq']:
+            fp = fps['preprocessed_%s' % ftype][0]['filepath']
+            with open(fp, "w") as f:
+                f.write("fake %s file\n" % ftype)
+            self.qclient.push_file_to_central(fp)
+            self._clean_up_files.append(fp)
 
         out_dir = mkdtemp()
         self._clean_up_files.append(out_dir)
-
         obs_success, obs_ainfo, obs_msg = pick_closed_reference_otus(
             self.qclient, job_id, self.parameters, out_dir)
         self.assertEqual(obs_msg, "")
